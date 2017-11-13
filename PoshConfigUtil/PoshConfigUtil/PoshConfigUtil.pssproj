@@ -31,8 +31,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigUtil.ps1" />
-    <Compile Include="Modules\ConfigUtilModule.psm1" />
-    <Compile Include="Modules\Gui.ps1" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />

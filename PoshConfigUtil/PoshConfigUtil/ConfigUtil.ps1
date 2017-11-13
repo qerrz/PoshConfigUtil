@@ -71,7 +71,6 @@ else {
 $ClientVersion = $ClientConfigContents.SelectSingleNode('/configuration/appSettings/add')
 $ClientVersion = $ClientVersion.Value
 ###################### ZALADOWANIE DANYCH DO EDITBOXOW				
-
 [xml]$ServiceConfigContents = Get-Content $ServiceConfig
 $ConnectionString = $ServiceConfigContents.configuration.connectionStrings.add.ConnectionString
 $Results = new-object System.Collections.Specialized.StringCollection
@@ -135,8 +134,8 @@ $Form3.Font = $Font
 
 $Form4 = New-Object System.Windows.Forms.Form
 $Form4.Text = "Endpoint configurator"
-$Form4.Width = 450
-$Form4.Height = 220
+$Form4.Width = 650
+$Form4.Height = 420
 $Form4.MinimizeBox = $True
 $Form4.MaximizeBox = $False
 $Form4.WindowState = "Normal"
@@ -201,6 +200,10 @@ $Form3ListBox2.Location = New-Object System.Drawing.Point(920, 40)
 $Form3ListBox3 = New-Object System.Windows.Forms.ListBox
 $Form3ListBox3.BorderStyle = 1
 $Form3ListBox3.Location = New-Object System.Drawing.Point(1140, 40)
+
+$Form4ListBox1 = New-Object System.Windows.Forms.ListBox
+$Form4ListBox1.BorderStyle = 1
+$Form4ListBox1.Location = New-Object System.Drawing.Point(100, 50)
 
 $Form1Label1 = New-Object System.Windows.Forms.Label
 $Form1Label1.Text = "App configs:"
@@ -374,6 +377,11 @@ $Form3Button5.Location = New-Object System.Drawing.Point (125, 170)
 $Form3Button5.Size = New-Object System.Drawing.Size(100, 50)
 $Form3Button5.Enabled = $False
 
+$Form4Button1 = New-Object System.Windows.Forms.Button
+$Form4Button1.Text = "Set endpoints"
+$Form4Button1.Location = New-Object System.Drawing.Point (220, 330)
+$Form4Button1.Size = New-Object System.Drawing.Size(200,30)
+
 ###################### EDYCJA CONNECTIONSTRING							
 $Form1Button1.Add_Click(
     {
@@ -512,9 +520,18 @@ $Form1Label7.Add_Click(
     }
 )
 ###################### ENDPOINTY										
-$Form1Button6.Add_Click(
+$Form1Button7.Add_Click(
 	{
-
+		#[xml]$ClientConfigContents = Get-Content $ClientConfig
+		$IPAddressesCount = Get-NetIPAddress | measure
+		$Endpoints = $ClientConfigContents.SelectNodes('/configuration/system.serviceModel/client/endpoint')
+		$EndpointsToCount = $Endpoints | measure
+		For ($i = 0; $i -eq $EndpointsCount.Count; $i++)
+		{
+			$Form4ListBox1.Items.Add($Endpoints.Address)
+		}
+		$ClientVersion = $ClientVersion.Address
+		$Form4.ShowDialog()
 	}
 )
 ###################### ZALADOWANIE USTAWIENIA APLIKACJI					
@@ -719,6 +736,7 @@ $Form1.Controls.Add($Form1TextBox5)
 $Form3.Controls.Add($Form3ListBox1)
 $Form3.Controls.Add($Form3ListBox2)
 $Form3.Controls.Add($Form3ListBox3)
+$Form4.Controls.Add($Form4ListBox1)
 ######################  Buttony ###################### 
 $Form1.Controls.add($Form1Button1)
 $Form1.Controls.add($Form1Button2)
@@ -732,6 +750,7 @@ $Form3.Controls.add($Form3Button1)
 $Form3.Controls.add($Form3Button2)
 $Form3.Controls.add($Form3Button3)
 $Form3.Controls.add($Form3Button4)
+$Form4.Controls.add($Form4Button1)
 #$Form3.Controls.add($Form3Button5)   <---- Obsolete for now
 ######################  Labele ###################### 
 $Form1.Controls.Add($Form1Label1)
