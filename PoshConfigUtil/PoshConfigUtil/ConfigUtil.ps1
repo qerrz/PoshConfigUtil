@@ -133,9 +133,9 @@ $Form3.ShowInTaskbar = $False
 $Form3.Font = $Font
 
 $Form4 = New-Object System.Windows.Forms.Form
-$Form4.Text = "Endpoint configurator"
-$Form4.Width = 650
-$Form4.Height = 420
+$Form4.Text = "Build-an-Endpoint Workshop"
+$Form4.Width = 1050
+$Form4.Height = 250
 $Form4.MinimizeBox = $True
 $Form4.MaximizeBox = $False
 $Form4.WindowState = "Normal"
@@ -189,6 +189,13 @@ $Form1TextBox5.Text = $ClientVersion
 $Form1TextBox5.Location = New-Object System.Drawing.Point(100, 165)
 $Form1TextBox5.Size = New-Object System.Drawing.Size(180, 12)
 
+$Form4TextBox1 = New-Object System.Windows.Forms.TextBox
+$Form4TextBox1.BorderStyle = 2
+$Form4TextBox1.TabStop = $false
+$Form4TextBox1.TabIndex = 1
+$Form4TextBox1.Location = New-Object System.Drawing.Point(270, 70)
+$Form4TextBox1.Size = New-Object System.Drawing.Size(60, 12)
+
 $Form3ListBox1 = New-Object System.Windows.Forms.Listbox
 $Form3ListBox1.BorderStyle = 1
 $Form3ListBox1.Location = New-Object System.Drawing.Point(700, 40)
@@ -203,7 +210,8 @@ $Form3ListBox3.Location = New-Object System.Drawing.Point(1140, 40)
 
 $Form4ListBox1 = New-Object System.Windows.Forms.ListBox
 $Form4ListBox1.BorderStyle = 1
-$Form4ListBox1.Location = New-Object System.Drawing.Point(100, 50)
+$Form4ListBox1.Location = New-Object System.Drawing.Point(50, 70)
+$Form4ListBox1.Size = New-Object System.Drawing.Size(180, 100)
 
 $Form1Label1 = New-Object System.Windows.Forms.Label
 $Form1Label1.Text = "App configs:"
@@ -303,6 +311,26 @@ $Form3Label10 = New-Object System.Windows.Forms.Label
 $Form3Label10.Location = New-Object System.Drawing.Point (1140, 290)
 $Form3Label10.Size = New-Object System.Drawing.Size(150, 20)
 
+$Form4Label1 = New-Object System.Windows.Forms.Label
+$Form4Label1.Location = New-Object System.Drawing.Point (50, 35)
+$Form4Label1.Size = New-Object System.Drawing.Size(80 , 35)
+$Form4Label1.Text = "Choose IP"
+
+$Form4Label2 = New-Object System.Windows.Forms.Label
+$Form4Label2.Location = New-Object System.Drawing.Point (265, 35)
+$Form4Label2.Size = New-Object System.Drawing.Size(80, 35)
+$Form4Label2.Text = "Type port"
+
+$Form4Label3 = New-Object System.Windows.Forms.Label
+$Form4Label3.Location = New-Object System.Drawing.Point (375, 35)
+$Form4Label3.Size = New-Object System.Drawing.Size(400, 35)
+$Form4Label3.Text = "Your endpoint address will look like this:"
+
+$Form4Label4 = New-Object System.Windows.Forms.Label
+$Form4Label4.Location = New-Object System.Drawing.Point (375, 70)
+$Form4Label4.Size = New-Object System.Drawing.Size(400 , 35)
+$Form4Label4.Text = "example.endpoint.address.with:port"
+
 $Form1Button1 = New-Object System.Windows.Forms.Button
 $Form1Button1.Text = "Edit`nconn. data"
 $Form1Button1.AcceptsTab = $false
@@ -341,7 +369,7 @@ $Form1Button6.Location = New-Object System.Drawing.Point(435, 75)
 $Form1Button6.Size = New-Object System.Drawing.Size(100, 50)
 
 $Form1Button7 = New-Object System.Windows.Forms.Button
-$Form1Button7.Text = "Set endpoints"
+$Form1Button7.Text = "Modify endpoints"
 $Form1Button7.AcceptsTab = $false
 $Form1Button7.Location = New-Object System.Drawing.Point(435, 130)
 $Form1Button7.Size = New-Object System.Drawing.Size(100, 50)
@@ -379,7 +407,7 @@ $Form3Button5.Enabled = $False
 
 $Form4Button1 = New-Object System.Windows.Forms.Button
 $Form4Button1.Text = "Set endpoints"
-$Form4Button1.Location = New-Object System.Drawing.Point (220, 330)
+$Form4Button1.Location = New-Object System.Drawing.Point (780, 150)
 $Form4Button1.Size = New-Object System.Drawing.Size(200,30)
 
 ###################### EDYCJA CONNECTIONSTRING							
@@ -522,15 +550,23 @@ $Form1Label7.Add_Click(
 ###################### ENDPOINTY										
 $Form1Button7.Add_Click(
 	{
-		#[xml]$ClientConfigContents = Get-Content $ClientConfig
-		$IPAddressesCount = Get-NetIPAddress | measure
+		###################### WYLISTOWANIE DOSTEPNYCH ADRESOW IP W SYSTEMIE
 		$Endpoints = $ClientConfigContents.SelectNodes('/configuration/system.serviceModel/client/endpoint')
-		$EndpointsToCount = $Endpoints | measure
-		For ($i = 0; $i -eq $EndpointsCount.Count; $i++)
+		$IPAddresses = Get-NetIPAddress
+		$Ip = @()
+		Foreach ($item in $IPAddresses.IPv4Address)
 		{
-			$Form4ListBox1.Items.Add($Endpoints.Address)
+			$Ip = $IPAddresses.IPv4Address
 		}
-		$ClientVersion = $ClientVersion.Address
+		Foreach ($Address in $Ip)
+		{
+			$Form4ListBox1.Items.Add($Address)
+		}
+		$Counter = $($Endpoints.Count)
+		For ($i = 0; $i -le $Counter; $i++)
+		{
+			$Form4ListBox1.Items.Add($($Endpoints.Address))
+		}
 		$Form4.ShowDialog()
 	}
 )
@@ -732,46 +768,51 @@ $Form1.Controls.Add($Form1TextBox2)
 $Form1.Controls.Add($Form1TextBox3)
 $Form1.Controls.Add($Form1TextBox4)
 $Form1.Controls.Add($Form1TextBox5)
+$Form4.Controls.Add($Form4TextBox1)
 ######################  ListBoxy ###################### 
 $Form3.Controls.Add($Form3ListBox1)
 $Form3.Controls.Add($Form3ListBox2)
 $Form3.Controls.Add($Form3ListBox3)
 $Form4.Controls.Add($Form4ListBox1)
 ######################  Buttony ###################### 
-$Form1.Controls.add($Form1Button1)
-$Form1.Controls.add($Form1Button2)
-$Form1.Controls.add($Form1Button3)
-$Form1.Controls.add($Form1Button4)
-$Form1.Controls.add($Form1Button5)
-$Form1.Controls.add($Form1Button6)
-$Form1.Controls.add($Form1Button7)
-$Form2.Controls.add($Form2Button1)
-$Form3.Controls.add($Form3Button1)
-$Form3.Controls.add($Form3Button2)
-$Form3.Controls.add($Form3Button3)
-$Form3.Controls.add($Form3Button4)
-$Form4.Controls.add($Form4Button1)
+$Form1.Controls.Add($Form1Button1)
+$Form1.Controls.Add($Form1Button2)
+$Form1.Controls.Add($Form1Button3)
+$Form1.Controls.Add($Form1Button4)
+$Form1.Controls.Add($Form1Button5)
+$Form1.Controls.Add($Form1Button6)
+$Form1.Controls.Add($Form1Button7)
+$Form2.Controls.Add($Form2Button1)
+$Form3.Controls.Add($Form3Button1)
+$Form3.Controls.Add($Form3Button2)
+$Form3.Controls.Add($Form3Button3)
+$Form3.Controls.Add($Form3Button4)
+$Form4.Controls.Add($Form4Button1)
 #$Form3.Controls.add($Form3Button5)   <---- Obsolete for now
 ######################  Labele ###################### 
 $Form1.Controls.Add($Form1Label1)
-$Form1.Controls.add($Form1Label2)
-$Form1.Controls.add($Form1Label3)
-$Form1.Controls.add($Form1Label4)
-$Form1.Controls.add($Form1Label5)
-$Form1.Controls.add($Form1Label6)
-$Form1.Controls.add($Form1Label7)
-$Form2.Controls.add($Form2Label1)
-$Form2.Controls.add($Form2Label2)
-$Form2.Controls.add($Form2Label3)
-$Form2.Controls.add($Form2Label4)
-$Form3.Controls.add($Form3Label1)
-$Form3.Controls.add($Form3Label2)
-$Form3.Controls.add($Form3Label3)
-$Form3.Controls.add($Form3Label4)
-$Form3.Controls.add($Form3Label5)
-$Form3.Controls.add($Form3Label6)
-$Form3.Controls.add($Form3Label7)
-$Form3.Controls.add($Form3Label8)
-$Form3.Controls.add($Form3Label9)
-$Form3.Controls.add($Form3Label10)
+$Form1.Controls.Add($Form1Label2)
+$Form1.Controls.Add($Form1Label3)
+$Form1.Controls.Add($Form1Label4)
+$Form1.Controls.Add($Form1Label5)
+$Form1.Controls.Add($Form1Label6)
+$Form1.Controls.Add($Form1Label7)
+$Form2.Controls.Add($Form2Label1)
+$Form2.Controls.Add($Form2Label2)
+$Form2.Controls.Add($Form2Label3)
+$Form2.Controls.Add($Form2Label4)
+$Form3.Controls.Add($Form3Label1)
+$Form3.Controls.Add($Form3Label2)
+$Form3.Controls.Add($Form3Label3)
+$Form3.Controls.Add($Form3Label4)
+$Form3.Controls.Add($Form3Label5)
+$Form3.Controls.Add($Form3Label6)
+$Form3.Controls.Add($Form3Label7)
+$Form3.Controls.Add($Form3Label8)
+$Form3.Controls.Add($Form3Label9)
+$Form3.Controls.Add($Form3Label10)
+$Form4.Controls.Add($Form4Label1)
+$Form4.Controls.Add($Form4Label2)
+$Form4.Controls.Add($Form4Label3)
+$Form4.Controls.Add($Form4Label4)
 $Form1.ShowDialog()
