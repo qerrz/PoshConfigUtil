@@ -1,8 +1,7 @@
 ﻿###################### USTAWIENIA SKRYPTU								
 [bool]$HideConsole = 1
 [string]$CMMSDirectory = 'C:\Queris\CMMS'
-###################### MODULE INITIALISATION	
-{						
+###################### MODULE INITIALISATION						
 #Try 
 #{
 #	Import-Module $PSScriptRoot\Modules\ConfigUtilModule.psm1 -Verbose
@@ -11,23 +10,17 @@
 #{
 #	[System.Windows.MessageBox]::Show("Failed to load ConfigUtilModule.", "Module loading failed!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)
 #}
-}
 ###################### UKRYCIE KONSOLI	
-{								
-if ($HideConsole -eq $True) {
+					if ($HideConsole -eq $True) {
 Add-Type -Name Window -Namespace Console -MemberDefinition '[DllImport("Kernel32.dll")]public static extern IntPtr GetConsoleWindow();[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
 $consolePtr = [Console.Window]::GetConsoleWindow()
 [Console.Window]::ShowWindow($consolePtr, 0)
 }
 else{
 }
-}
-###################### ZALADOWANIE KOMPONENTOW		
-{					
+###################### ZALADOWANIE KOMPONENTOW					
 Add-Type -AssemblyName System.Windows.Forms, PresentationCore, PresentationFramework
-}
 ###################### SPRAWDZANIE STRUKTURY KATALOGÓW & TWORZENIE ZMIENNYCH	
-{
 $FilePath = $CMMSDirectory
 $NewStructure = $FilePath + "\RestService\"
 $OldStructure = $FilePath + "\RRM3RestService\"
@@ -73,15 +66,12 @@ else {
         return
     }
 }
-}
 ###################### POBRANIE WERSJI Z RRM3.EXE					
-{
 [xml]$ClientConfigContents = Get-Content $ClientConfig
 $ClientVersion = $ClientConfigContents.SelectSingleNode('/configuration/appSettings/add')
 $ClientVersion = $ClientVersion.Value
-}
 ###################### ZALADOWANIE DANYCH DO EDITBOXOW				
-{
+
 [xml]$ServiceConfigContents = Get-Content $ServiceConfig
 $ConnectionString = $ServiceConfigContents.configuration.connectionStrings.add.ConnectionString
 $Results = new-object System.Collections.Specialized.StringCollection
@@ -103,9 +93,8 @@ $DBLogin = $DBLogin.Replace('=', '')
 $DBLogin = $DBLogin.Replace(';', '')
 $DBPass = $DBPass.Replace('=', '')
 $DBPass = $DBPass.Replace(';', '')
-}
 ###################### DEFINIOWANIE GUI									
-{
+
 $Form1 = New-Object system.Windows.Forms.Form
 $Form1.Text = "Informacje o kliencie CMMS"
 $Form1.AutoScroll = $True
@@ -143,6 +132,18 @@ $Form3.FormBorderStyle = "FixedSingle"
 $Form3.SizeGripStyle = "Hide"
 $Form3.ShowInTaskbar = $False
 $Form3.Font = $Font
+
+$Form4 = New-Object System.Windows.Forms.Form
+$Form4.Text = "Endpoint configurator"
+$Form4.Width = 450
+$Form4.Height = 220
+$Form4.MinimizeBox = $True
+$Form4.MaximizeBox = $False
+$Form4.WindowState = "Normal"
+$Form4.FormBorderStyle = "FixedSingle"
+$Form4.SizeGripStyle = "Hide"
+$Form4.ShowInTaskbar = $False
+$Form4.Font = $Font
 
 $Form1TextBox1 = New-Object System.Windows.Forms.TextBox
 $Form1TextBox1.ReadOnly = $true
@@ -336,11 +337,11 @@ $Form1Button6.AcceptsTab = $false
 $Form1Button6.Location = New-Object System.Drawing.Point(435, 75)
 $Form1Button6.Size = New-Object System.Drawing.Size(100, 50)
 
-$Form1Button6 = New-Object System.Windows.Forms.Button
-$Form1Button6.Text = "Set endpoints"
-$Form1Button6.AcceptsTab = $false
-$Form1Button6.Location = New-Object System.Drawing.Point(435, 130)
-$Form1Button6.Size = New-Object System.Drawing.Size(100, 50)
+$Form1Button7 = New-Object System.Windows.Forms.Button
+$Form1Button7.Text = "Set endpoints"
+$Form1Button7.AcceptsTab = $false
+$Form1Button7.Location = New-Object System.Drawing.Point(435, 130)
+$Form1Button7.Size = New-Object System.Drawing.Size(100, 50)
 
 $Form2Button1 = New-Object System.Windows.Forms.Button
 $Form2Button1.Text = "OK"
@@ -372,7 +373,7 @@ $Form3Button5.Text = "Compare"
 $Form3Button5.Location = New-Object System.Drawing.Point (125, 170)
 $Form3Button5.Size = New-Object System.Drawing.Size(100, 50)
 $Form3Button5.Enabled = $False
-}
+
 ###################### EDYCJA CONNECTIONSTRING							
 $Form1Button1.Add_Click(
     {
@@ -708,7 +709,6 @@ $Form1Button5.Add_Click(
     }
 )
 ###################### INICJALIZACJA GUI 
-{
 ######################  TextBoxy ###################### 
 $Form1.Controls.Add($Form1TextBox1)
 $Form1.Controls.Add($Form1TextBox2)
@@ -726,6 +726,7 @@ $Form1.Controls.add($Form1Button3)
 $Form1.Controls.add($Form1Button4)
 $Form1.Controls.add($Form1Button5)
 $Form1.Controls.add($Form1Button6)
+$Form1.Controls.add($Form1Button7)
 $Form2.Controls.add($Form2Button1)
 $Form3.Controls.add($Form3Button1)
 $Form3.Controls.add($Form3Button2)
@@ -755,4 +756,3 @@ $Form3.Controls.add($Form3Label8)
 $Form3.Controls.add($Form3Label9)
 $Form3.Controls.add($Form3Label10)
 $Form1.ShowDialog()
-}
