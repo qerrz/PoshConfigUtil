@@ -673,7 +673,7 @@ $Form3Button5.Add_Click(
         }
         $Form3ListBox2.Size = New-Object System.Drawing.Size(180, 230)
         $Form3ListBox3.Size = New-Object System.Drawing.Size(180, 230)
-        $QueryResult = Invoke-Sqlcmd -ServerInstance "192.168.1.50" -Database "RRM3_PressGlass" -Username "rrm3user" -Password "RRM3Pass!1" -Query "SELECT [Wersja] FROM dbo.Wersje_Skryptow"
+        $QueryResult = Invoke-Sqlcmd -ServerInstance "localhost" -Database "CMMS" -Username "rrm3user" -Password "RRM3Pass!1" -Query "SELECT [Wersja] FROM dbo.Wersje_Skryptow"
         $ScriptList = $AppConfig.SelectNodes('/configuration/scripts/scriptlist/script')
         $QueryValues = @()  
         $ArrScripts = @()
