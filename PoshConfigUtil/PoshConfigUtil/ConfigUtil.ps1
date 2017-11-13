@@ -552,7 +552,7 @@ $Form1Button7.Add_Click(
 	{
 		###################### WYLISTOWANIE DOSTEPNYCH ADRESOW IP W SYSTEMIE
 		$Endpoints = $ClientConfigContents.SelectNodes('/configuration/system.serviceModel/client/endpoint')
-		$IPAddresses = Get-NetIPAddress
+		$IPAddresses = Get-NetIPAddress -AddressFamily IPv4
 		$Ip = @()
 		Foreach ($item in $IPAddresses.IPv4Address)
 		{
@@ -563,13 +563,26 @@ $Form1Button7.Add_Click(
 			$Form4ListBox1.Items.Add($Address)
 		}
 		$Counter = $($Endpoints.Count)
-		For ($i = 0; $i -le $Counter; $i++)
-		{
-			$Form4ListBox1.Items.Add($($Endpoints.Address))
-		}
 		$Form4.ShowDialog()
 	}
 )
+$Form4Listbox1.Add_Click(
+	{
+		$Form4Label4.Text = $Form4Listbox1.SelectedItem + ":" + $Form4TextBox1.Text
+	}
+)
+$Form4ListBox1.Add_KeyUp(
+	{
+		$Form4Label4.Text = $Form4Listbox1.SelectedItem + ":" + $Form4TextBox1.Text
+	}
+)
+
+$Form4TextBox1.Add_TextChanged(
+	{
+		$Form4Label4.Text = $Form4Listbox1.Text + ":" + $Form4Textbox1.Text
+	}
+)
+
 ###################### ZALADOWANIE USTAWIENIA APLIKACJI					
 $Form3Button1.Add_Click(
     {
