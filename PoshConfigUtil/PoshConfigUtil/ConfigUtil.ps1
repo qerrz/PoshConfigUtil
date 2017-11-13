@@ -328,7 +328,7 @@ $Form4Label3.Text = "Your endpoint address will look like this:"
 
 $Form4Label4 = New-Object System.Windows.Forms.Label
 $Form4Label4.Location = New-Object System.Drawing.Point (375, 70)
-$Form4Label4.Size = New-Object System.Drawing.Size(400 , 35)
+$Form4Label4.Size = New-Object System.Drawing.Size(600 , 35)
 $Form4Label4.Text = "example.endpoint.address.with:port"
 
 $Form1Button1 = New-Object System.Windows.Forms.Button
@@ -568,18 +568,18 @@ $Form1Button7.Add_Click(
 )
 $Form4Listbox1.Add_Click(
 	{
-		$Form4Label4.Text = $Form4Listbox1.SelectedItem + ":" + $Form4TextBox1.Text
+		$Form4Label4.Text = "net.tcp://" + $Form4Listbox1.SelectedItem + ":" + $Form4TextBox1.Text + "/RrmWcfServices.Services.AllServices.svc"
 	}
 )
 $Form4ListBox1.Add_KeyUp(
 	{
-		$Form4Label4.Text = $Form4Listbox1.SelectedItem + ":" + $Form4TextBox1.Text
+		$Form4Label4.Text = "net.tcp://" + $Form4Listbox1.SelectedItem + ":" + $Form4TextBox1.Text + "/RrmWcfServices.Services.AllServices.svc"
 	}
 )
 
 $Form4TextBox1.Add_TextChanged(
 	{
-		$Form4Label4.Text = $Form4Listbox1.Text + ":" + $Form4Textbox1.Text
+		$Form4Label4.Text = "net.tcp://" + $Form4Listbox1.Text + ":" + $Form4Textbox1.Text + "/RrmWcfServices.Services.AllServices.svc"
 	}
 )
 
