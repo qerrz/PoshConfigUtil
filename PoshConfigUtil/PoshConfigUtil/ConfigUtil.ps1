@@ -1,5 +1,5 @@
 ﻿###################### USTAWIENIA SKRYPTU								
-[bool]$HideConsole = 1
+[bool]$HideConsole = 0
 [string]$CMMSDirectory = 'C:\Queris\CMMS'
 ###################### MODULE INITIALISATION						
 #Try 
@@ -11,7 +11,7 @@
 #	[System.Windows.MessageBox]::Show("Failed to load ConfigUtilModule.", "Module loading failed!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)
 #}
 ###################### UKRYCIE KONSOLI	
-					if ($HideConsole -eq $True) {
+if ($HideConsole -eq $True) {
 Add-Type -Name Window -Namespace Console -MemberDefinition '[DllImport("Kernel32.dll")]public static extern IntPtr GetConsoleWindow();[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
 $consolePtr = [Console.Window]::GetConsoleWindow()
 [Console.Window]::ShowWindow($consolePtr, 0)
@@ -564,7 +564,6 @@ $Form1Button7.Add_Click(
 		}
 		$Endpoint = $ClientConfigContents.SelectSingleNode('/configuration/system.serviceModel/client/endpoint')
 		$Form4Label6.Text = $Endpoint.Address
-		#$Counter = $($Endpoint.Count)
 		$Form4.ShowDialog()
 	}
 )
@@ -587,7 +586,23 @@ $Form4TextBox1.Add_TextChanged(
 ###################### ZAPISANIE ENDPOINTÓW DO PLIKU
 $Form4Button1.Add_Click(
 	{
-		$Form4Label4
+		Try {
+			$AddressToSave = $Form4Label4.Text
+			$FileToEdit5 = $ClientConfig
+			[xml]$ClientXml = Get-Content $FileToEdit5
+			$ClientXml.Load($FileToEdit5)
+			$node5 = $ClientXml.SelectNodes('/configuration/system.serviceModel/client/endpoint')
+			$node5.SetAttribute('address', $AddressToSave)
+			$ClientXml.Save($FileToEdit5)
+			$Endpoint = $ClientConfigContents.SelectSingleNode('/configuration/system.serviceModel/client/endpoint')
+			$Form4Label6.Text = $AddressToSave
+			$Counter = $($Endpoint.Count)
+			[System.Windows.MessageBox]::Show("Successfully modified $Counter endpoints in RRM3.exe.config", "Succsss!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)	
+		}
+		Catch
+		{
+			[System.Windows.MessageBox]::Show("Failed to save RRM3.exe.config.", "Error!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)	
+		}
 	}
 )
 
