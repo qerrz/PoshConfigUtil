@@ -1,16 +1,8 @@
 ﻿###################### USTAWIENIA SKRYPTU								
-[bool]$HideConsole = 0
+[bool]$HideConsole = 1
+[bool]$MultiChoose = 0
 [string]$CMMSDirectory = 'C:\Queris\CMMS'
-###################### MODULE INITIALISATION						
-#Try 
-#{
-#	Import-Module $PSScriptRoot\Modules\ConfigUtilModule.psm1 -Verbose
-#}
-#Catch
-#{
-#	[System.Windows.MessageBox]::Show("Failed to load ConfigUtilModule.", "Module loading failed!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)
-#}
-###################### UKRYCIE KONSOLI	
+###################### UKRYCIE KONSOLI
 if ($HideConsole -eq $True) {
 Add-Type -Name Window -Namespace Console -MemberDefinition '[DllImport("Kernel32.dll")]public static extern IntPtr GetConsoleWindow();[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
 $consolePtr = [Console.Window]::GetConsoleWindow()
@@ -18,8 +10,12 @@ $consolePtr = [Console.Window]::GetConsoleWindow()
 }
 else{
 }
-###################### ZALADOWANIE KOMPONENTOW					
+###################### ZALADOWANIE ZALEZNOSCI				
 Add-Type -AssemblyName System.Windows.Forms, PresentationCore, PresentationFramework
+###################### MULTIWYBÓR
+if ($MultiChoose -eq $True) {
+
+}
 ###################### SPRAWDZANIE STRUKTURY KATALOGÓW & TWORZENIE ZMIENNYCH	
 $FilePath = $CMMSDirectory
 $NewStructure = $FilePath + "\RestService\"
