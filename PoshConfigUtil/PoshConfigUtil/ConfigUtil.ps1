@@ -592,7 +592,7 @@ $Form4Button1.Add_Click(
 			$ClientXml.Save($FileToEdit5)
 			$Endpoint = $ClientConfigContents.SelectSingleNode('/configuration/system.serviceModel/client/endpoint')
 			$Form4Label6.Text = $AddressToSave
-			$Counter = $($Endpoint.Count)
+			$Counter = $($node5.Count)
 			[System.Windows.MessageBox]::Show("Successfully modified $Counter endpoints in RRM3.exe.config", "Succsss!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)	
 		}
 		Catch
