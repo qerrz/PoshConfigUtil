@@ -193,7 +193,7 @@ $Form4TextBox1 = New-Object System.Windows.Forms.TextBox
 $Form4TextBox1.BorderStyle = 2
 $Form4TextBox1.TabStop = $false
 $Form4TextBox1.TabIndex = 1
-$Form4TextBox1.Location = New-Object System.Drawing.Point(270, 70)
+$Form4TextBox1.Location = New-Object System.Drawing.Point(270, 60)
 $Form4TextBox1.Size = New-Object System.Drawing.Size(60, 12)
 
 $Form3ListBox1 = New-Object System.Windows.Forms.Listbox
@@ -210,7 +210,7 @@ $Form3ListBox3.Location = New-Object System.Drawing.Point(1140, 40)
 
 $Form4ListBox1 = New-Object System.Windows.Forms.ListBox
 $Form4ListBox1.BorderStyle = 1
-$Form4ListBox1.Location = New-Object System.Drawing.Point(50, 70)
+$Form4ListBox1.Location = New-Object System.Drawing.Point(50, 60)
 $Form4ListBox1.Size = New-Object System.Drawing.Size(180, 100)
 
 $Form1Label1 = New-Object System.Windows.Forms.Label
@@ -312,65 +312,67 @@ $Form3Label10.Location = New-Object System.Drawing.Point (1140, 290)
 $Form3Label10.Size = New-Object System.Drawing.Size(150, 20)
 
 $Form4Label1 = New-Object System.Windows.Forms.Label
-$Form4Label1.Location = New-Object System.Drawing.Point (50, 35)
+$Form4Label1.Location = New-Object System.Drawing.Point (50, 25)
 $Form4Label1.Size = New-Object System.Drawing.Size(80 , 35)
 $Form4Label1.Text = "Choose IP"
 
 $Form4Label2 = New-Object System.Windows.Forms.Label
-$Form4Label2.Location = New-Object System.Drawing.Point (265, 35)
+$Form4Label2.Location = New-Object System.Drawing.Point (265, 25)
 $Form4Label2.Size = New-Object System.Drawing.Size(80, 35)
 $Form4Label2.Text = "Type port"
 
 $Form4Label3 = New-Object System.Windows.Forms.Label
-$Form4Label3.Location = New-Object System.Drawing.Point (375, 35)
+$Form4Label3.Location = New-Object System.Drawing.Point (375, 25)
 $Form4Label3.Size = New-Object System.Drawing.Size(400, 35)
 $Form4Label3.Text = "Your endpoint address will look like this:"
 
 $Form4Label4 = New-Object System.Windows.Forms.Label
-$Form4Label4.Location = New-Object System.Drawing.Point (375, 70)
+$Form4Label4.Location = New-Object System.Drawing.Point (375, 55)
 $Form4Label4.Size = New-Object System.Drawing.Size(600 , 35)
-$Form4Label4.Text = "example.endpoint.address.with:port"
+
+$Form4Label5 = New-Object System.Windows.Forms.Label
+$Form4Label5.Location = New-Object System.Drawing.Point (375, 95)
+$Form4Label5.Size = New-Object System.Drawing.Size(600 , 35)
+$Form4Label5.Text = "Current endpoint address in config:"
+
+$Form4Label6 = New-Object System.Windows.Forms.Label
+$Form4Label6.Location = New-Object System.Drawing.Point (375, 125)
+$Form4Label6.Size = New-Object System.Drawing.Size(600 , 35)
 
 $Form1Button1 = New-Object System.Windows.Forms.Button
 $Form1Button1.Text = "Edit`nconn. data"
-$Form1Button1.AcceptsTab = $false
 $Form1Button1.Location = New-Object System.Drawing.Point(320, 20)
 $Form1Button1.Size = New-Object System.Drawing.Size(100, 50)
 
 $Form1Button2 = New-Object System.Windows.Forms.Button
 $Form1Button2.Text = "Accept`nand save"
-$Form1Button2.AcceptsTab = $false
 $Form1Button2.Location = New-Object System.Drawing.Point(320, 75)
 $Form1Button2.Size = New-Object System.Drawing.Size(100, 50)
 $Form1Button2.Enabled = $false
 
 $Form1Button3 = New-Object System.Windows.Forms.Button
 $Form1Button3.Text = "List loaded paths"
-$Form1Button3.AcceptsTab = $false
 $Form1Button3.Location = New-Object System.Drawing.Point(320, 130)
 $Form1Button3.Size = New-Object System.Drawing.Size(100, 50)
 
 $Form1Button4 = New-Object System.Windows.Forms.Button
 $Form1Button4.Text = "Run app"
-$Form1Button4.AcceptsTab = $false
 $Form1Button4.Location = New-Object System.Drawing.Point(320, 185)
 $Form1Button4.Size = New-Object System.Drawing.Size(100, 50)
 
 $Form1Button5 = New-Object System.Windows.Forms.Button
 $Form1Button5.Text = "DB Operations"
-$Form1Button5.AcceptsTab = $false
 $Form1Button5.Location = New-Object System.Drawing.Point(435, 20)
 $Form1Button5.Size = New-Object System.Drawing.Size(100, 50)
 
 $Form1Button6 = New-Object System.Windows.Forms.Button
 $Form1Button6.Text = "IIS Operations"
-$Form1Button6.AcceptsTab = $false
 $Form1Button6.Location = New-Object System.Drawing.Point(435, 75)
 $Form1Button6.Size = New-Object System.Drawing.Size(100, 50)
+$Form1Button6.Enabled = $False
 
 $Form1Button7 = New-Object System.Windows.Forms.Button
 $Form1Button7.Text = "Modify endpoints"
-$Form1Button7.AcceptsTab = $false
 $Form1Button7.Location = New-Object System.Drawing.Point(435, 130)
 $Form1Button7.Size = New-Object System.Drawing.Size(100, 50)
 
@@ -406,9 +408,9 @@ $Form3Button5.Size = New-Object System.Drawing.Size(100, 50)
 $Form3Button5.Enabled = $False
 
 $Form4Button1 = New-Object System.Windows.Forms.Button
-$Form4Button1.Text = "Set endpoints"
-$Form4Button1.Location = New-Object System.Drawing.Point (780, 150)
-$Form4Button1.Size = New-Object System.Drawing.Size(200,30)
+$Form4Button1.Text = "Save and set endpoints"
+$Form4Button1.Location = New-Object System.Drawing.Point (780, 160)
+$Form4Button1.Size = New-Object System.Drawing.Size(220,30)
 
 ###################### EDYCJA CONNECTIONSTRING							
 $Form1Button1.Add_Click(
@@ -547,11 +549,9 @@ $Form1Label7.Add_Click(
         $UselessCrap = "Admin" + $ClientVersion | clip.exe
     }
 )
-###################### ENDPOINTY										
+###################### FORMULARZ ENDPOINTY										
 $Form1Button7.Add_Click(
 	{
-		###################### WYLISTOWANIE DOSTEPNYCH ADRESOW IP W SYSTEMIE
-		$Endpoints = $ClientConfigContents.SelectNodes('/configuration/system.serviceModel/client/endpoint')
 		$IPAddresses = Get-NetIPAddress -AddressFamily IPv4
 		$Ip = @()
 		Foreach ($item in $IPAddresses.IPv4Address)
@@ -562,10 +562,13 @@ $Form1Button7.Add_Click(
 		{
 			$Form4ListBox1.Items.Add($Address)
 		}
-		$Counter = $($Endpoints.Count)
+		$Endpoint = $ClientConfigContents.SelectSingleNode('/configuration/system.serviceModel/client/endpoint')
+		$Form4Label6.Text = $Endpoint.Address
+		#$Counter = $($Endpoint.Count)
 		$Form4.ShowDialog()
 	}
 )
+###################### EVENTHANDLERY DLA LABELA Z NOWYM ENPOINT ADRESEM
 $Form4Listbox1.Add_Click(
 	{
 		$Form4Label4.Text = "net.tcp://" + $Form4Listbox1.SelectedItem + ":" + $Form4TextBox1.Text + "/RrmWcfServices.Services.AllServices.svc"
@@ -576,10 +579,15 @@ $Form4ListBox1.Add_KeyUp(
 		$Form4Label4.Text = "net.tcp://" + $Form4Listbox1.SelectedItem + ":" + $Form4TextBox1.Text + "/RrmWcfServices.Services.AllServices.svc"
 	}
 )
-
 $Form4TextBox1.Add_TextChanged(
 	{
 		$Form4Label4.Text = "net.tcp://" + $Form4Listbox1.Text + ":" + $Form4Textbox1.Text + "/RrmWcfServices.Services.AllServices.svc"
+	}
+)
+###################### ZAPISANIE ENDPOINTÓW DO PLIKU
+$Form4Button1.Add_Click(
+	{
+		$Form4Label4
 	}
 )
 
@@ -828,4 +836,6 @@ $Form4.Controls.Add($Form4Label1)
 $Form4.Controls.Add($Form4Label2)
 $Form4.Controls.Add($Form4Label3)
 $Form4.Controls.Add($Form4Label4)
+$Form4.Controls.Add($Form4Label5)
+$Form4.Controls.Add($Form4Label6)
 $Form1.ShowDialog()
