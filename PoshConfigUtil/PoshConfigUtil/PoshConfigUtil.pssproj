@@ -27,10 +27,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Modules\" />
+    <Folder Include="Module\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigUtil.ps1" />
+    <Compile Include="Module\Get-GUI.ps1" />
+    <Compile Include="Module\HelpFunctions.ps1" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />
