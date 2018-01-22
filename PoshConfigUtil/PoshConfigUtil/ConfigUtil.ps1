@@ -1,15 +1,6 @@
 ﻿###################### USTAWIENIA SKRYPTU								
 [bool]$HideConsole = 1
 [string]$CMMSDirectory = 'C:\Queris\CMMS'
-###################### MODULE INITIALISATION						
-#Try 
-#{
-#	Import-Module $PSScriptRoot\Modules\ConfigUtilModule.psm1 -Verbose
-#}
-#Catch
-#{
-#	[System.Windows.MessageBox]::Show("Failed to load ConfigUtilModule.", "Module loading failed!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)
-#}
 ###################### UKRYCIE KONSOLI	
 					if ($HideConsole -eq $True) {
 Add-Type -Name Window -Namespace Console -MemberDefinition '[DllImport("Kernel32.dll")]public static extern IntPtr GetConsoleWindow();[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
