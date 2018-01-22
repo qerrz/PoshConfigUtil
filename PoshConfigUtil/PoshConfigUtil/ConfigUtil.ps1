@@ -8,13 +8,15 @@ $consolePtr = [Console.Window]::GetConsoleWindow()
 [Console.Window]::ShowWindow($consolePtr, 0)
 }
 else{
+	Write-Host "Console available. Entering test mode."
 }
 ###################### ZALADOWANIE KOMPONENTOW					
 Add-Type -AssemblyName System.Windows.Forms, PresentationCore, PresentationFramework
 ###################### SPRAWDZANIE STRUKTURY KATALOGÓW & TWORZENIE ZMIENNYCH	
 $FilePath = $CMMSDirectory
-$NewStructure = $FilePath + "\RestService\"
-$OldStructure = $FilePath + "\RRM3RestService\"
+Write-Host "Attempting to load $FilePath"
+$NewStructure = $FilePath + "\Service\"
+$OldStructure = $FilePath + "\RRM3Services\"
 $CheckNewPath = Test-Path $NewStructure
 $CheckOldPath = Test-Path $OldStructure
 if ($CheckNewPath -eq $True) {
@@ -33,6 +35,7 @@ if ($CheckNewPath -eq $True) {
     $WebClientConfig = $WebClientFilePath + "Web.config"
     $ClientConfig = $ClientFilePath + "RRM3.exe.config"
     $ExeFile = $ClientFilePath + "RRM3.exe"
+	Write-Host "New structure loaded"
 }
 else {
     if ($CheckOldPath -eq $True) {
@@ -51,12 +54,14 @@ else {
         $WebClientConfig = $WebClientFilePath + "Web.config"
         $ClientConfig = $ClientFilePath + "RRM3.exe.config"
         $ExeFile = $ClientFilePath + "RRM3.exe"
+		Write-Host "Old structure loaded"
     }
     else {
         [System.Windows.MessageBox]::Show("Nie odnaleziono struktury katalogow CMMS. Upewnij sie, ze sciezka w pliku ConfigScriptGui.config jest prawidlowa!.", "System failure!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)
         return
     }
 }
+
 ###################### POBRANIE WERSJI Z RRM3.EXE					
 [xml]$ClientConfigContents = Get-Content $ClientConfig
 $ClientVersion = $ClientConfigContents.SelectSingleNode('/configuration/appSettings/add')
@@ -578,7 +583,23 @@ $Form4TextBox1.Add_TextChanged(
 ###################### ZAPISANIE ENDPOINTÓW DO PLIKU
 $Form4Button1.Add_Click(
 	{
-		$Form4Label4
+		Try {
+			$AddressToSave = $Form4Label4.Text
+			$FileToEdit5 = $ClientConfig
+			[xml]$ClientXml = Get-Content $FileToEdit5
+			$ClientXml.Load($FileToEdit5)
+			$node5 = $ClientXml.SelectNodes('/configuration/system.serviceModel/client/endpoint')
+			$node5.SetAttribute('address', $AddressToSave)
+			$ClientXml.Save($FileToEdit5)
+			$Endpoint = $ClientConfigContents.SelectSingleNode('/configuration/system.serviceModel/client/endpoint')
+			$Form4Label6.Text = $AddressToSave
+			$Counter = $($node5.Count)
+			[System.Windows.MessageBox]::Show("Successfully modified $Counter endpoints in RRM3.exe.config", "Succsss!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)	
+		}
+		Catch
+		{
+			[System.Windows.MessageBox]::Show("Failed to save RRM3.exe.config.", "Error!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)	
+		}
 	}
 )
 
@@ -661,7 +682,7 @@ $Form3Button3.Add_Click(
         $clearbinconfirmation = [System.Windows.Forms.MessageBox]::Show("This option, when performed badly,  might completely break CMMS`nand prevent further usage until fixed by maintenance staff.`nAre you sure you want to clear bin settings?", 'Warning', 'YesNo', 'Warning')
         if ($clearbinconfirmation -eq 'Yes') {
             $Form3Button3.Text = "Clearing..."
-            Invoke-Sqlcmd -ConnectionTimeout "100" -ServerInstance $Form1TextBox1.Text -Database $Form1TextBox2.Text -Username $Form1TextBox3.Text -Password $Form1TextBox4.Text -Query "DELETE FROM [dbo.UstawieniaBin] WHERE Id < 20"
+            Invoke-Sqlcmd -ConnectionTimeout "100" -ServerInstance $Form1TextBox1.Text -Database $Form1TextBox2.Text -Username $Form1TextBox3.Text -Password $Form1TextBox4.Text -Query "DELETE FROM [dbo.UstawieniaBin]"
             $Form3Button3.Text = "Clear BinSettings"
         }
         else {}
