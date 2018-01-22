@@ -1,6 +1,6 @@
 ﻿###################### USTAWIENIA SKRYPTU								
-[bool]$HideConsole = 1
-[bool]$MultiChoose = 1
+[bool]$HideConsole = 0
+[bool]$MultiChoose = 0
 [string]$CMMSDirectory = 'C:\Queris\CMMS'
 $MultiChooseDirectories =   "C:\Queris\CMMS",
 							"C:\Queris\FINLAND\CMMS_TEST",
@@ -13,14 +13,160 @@ $MultiChooseDirectories =   "C:\Queris\CMMS",
 							"C:\Queris\SERBIA\CMMS_PRODUCTION"
 ###################### UKRYCIE KONSOLI
 if ($HideConsole -eq $True) {
-Add-Type -Name Window -Namespace Console -MemberDefinition '[DllImport("Kernel32.dll")]public static extern IntPtr GetConsoleWindow();[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
-$consolePtr = [Console.Window]::GetConsoleWindow()
-[Console.Window]::ShowWindow($consolePtr, 0)
+	Add-Type -Name Window -Namespace Console -MemberDefinition '[DllImport("Kernel32.dll")]public static extern IntPtr GetConsoleWindow();[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
+	$consolePtr = [Console.Window]::GetConsoleWindow()
+	[Console.Window]::ShowWindow($consolePtr, 0)
 }
 else{
+	Write-Host "############################ Safe Mode ON ############################"
 }
 ###################### ZALADOWANIE ZALEZNOSCI				
 Add-Type -AssemblyName System.Windows.Forms, PresentationCore, PresentationFramework
+###################### MULTIWYBÓR
+function Directory-Check {
+	###################### SPRAWDZANIE STRUKTURY KATALOGÓW & TWORZENIE ZMIENNYCH	
+	Write-Host "-- Calling function Directory-Check --"
+	Write-Host "Selected directory: $FilePath"
+	$NewStructure = $FilePath + "\Service\"
+	$OldStructure = $FilePath + "\RRM3Service\"
+	$CheckNewPath = Test-Path $NewStructure
+	$CheckOldPath = Test-Path $OldStructure
+	if ($CheckNewPath -eq $True) {
+		Write-Host "Check New Path succeded. Loaded path: $NewStructure"
+		$global:RestFilePath = $FilePath + "\RestService\"
+		$global:ServiceFilePath = $FilePath + "\Service\"
+		$global:WebClientFilePath = $FilePath + "\WebClient\"
+		$global:ClientFilePath = $FilePath + "\Client\"
+		$global:Attachments = $FilePath + "\Attachments"
+		$global:Labels = $FilePath + "\Service\Labels"
+		$global:Temp = $FilePath + "\Service\Temp"
+		$global:Mobile = $FilePath + "\Service\Temp\RRM3Mobile\RRM3Mobile.exe"
+		$global:Apk = $FilePath + "\RestService\Android\CMMSMobile.apk"
+		$global:TV = $FilePath + "\RestService\Tv\Tv.zip"
+		$global:RestConfig = $RestFilePath + "Web.config"
+		$global:ServiceConfig = $ServiceFilePath + "Web.config"
+		$global:WebClientConfig = $WebClientFilePath + "Web.config"
+		$global:ClientConfig = $ClientFilePath + "RRM3.exe.config"
+		$global:ExeFile = $ClientFilePath + "RRM3.exe"
+	}
+	else {
+		if ($CheckOldPath -eq $True) {
+			Write-Host "Check Old Path succeded. Loaded path: $OldStructure"
+		    $RestFilePath = $FilePath + "\RRM3RestService\"
+			$ServiceFilePath = $FilePath + "\RRM3Services\"
+			$WebClientFilePath = $FilePath + "\RRM3WebClient\"
+			$ClientFilePath = $FilePath + "\RRM3Client\"
+			$Attachments = $FilePath + "\Attachments"
+			$Labels = $FilePath + "\RRM3Services\Labels"
+			$Temp = $FilePath + "\RRM3Services\Temp"
+			$Mobile = $FilePath + "\RRM3Services\Temp\RRM3Mobile\RRM3Mobile.exe"
+			$Apk = $FilePath + "\RRM3RestService\Android\CMMSMobile.apk"
+			$TV = $FilePath + "\RRM3RestService\Tv\Tv.zip"
+			$RestConfig = $RestFilePath + "Web.config"
+			$ServiceConfig = $ServiceFilePath + "Web.config"
+			$WebClientConfig = $WebClientFilePath + "Web.config"
+			$ClientConfig = $ClientFilePath + "RRM3.exe.config"
+			$ExeFile = $ClientFilePath + "RRM3.exe"
+		}
+		else {
+			Write-Host "Exception: $FilePath not found"
+			[System.Windows.MessageBox]::Show("Nie odnaleziono struktury katalogow CMMS. Upewnij sie, ze sciezka w pliku ConfigScriptGui.config jest prawidlowa!.", "System failure!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)
+			return
+		}
+	}
+	Write-Host "Loaded paths:"
+	Write-Host "RestService: $RestFilePath"
+	Write-Host "WebClient: $WebClientFilePath"
+	Write-Host "Client: $ClientFilePath"
+	Write-Host "Attachments: $Attachments"
+	Write-Host "Labels: $Labels"
+	Write-Host "Temp: $Temp"
+	Write-Host "Mobile: $Mobile"
+	Write-Host "Apk: $Apk"
+	Write-Host "TV: $TV"
+	Write-Host "RestService Config: $RestConfig"
+	Write-Host "WebClient Config: $WebClientConfig"
+	Write-Host "Client Config: $ClientConfig"
+	Write-Host "Exe file: $ExeFile"
+}
+function Get-ConnString {	
+	Write-Host "-- Calling function Get-ConnString --"
+	###################### POBRANIE WERSJI Z RRM3.EXE	
+	Write-Host "Starting loading client version from: $ClientConfig"				
+	[xml]$ClientConfigContents = Get-Content $ClientConfig
+	$ClientVersion = $ClientConfigContents.SelectSingleNode('/configuration/appSettings/add')
+	$ClientVersion = $ClientVersion.Value
+	###################### ZALADOWANIE DANYCH DO EDITBOXOW	
+	Write-Host "Starting loading connectionstring from: $ServiceConfig"			
+	[xml]$ServiceConfigContents = Get-Content $ServiceConfig
+	$ConnectionString = $ServiceConfigContents.configuration.connectionStrings.add.ConnectionString
+	$Results = new-object System.Collections.Specialized.StringCollection
+	$regex = [regex] '=(\w.*?);'
+	$match = $regex.Match($ConnectionString)
+	while ($match.Success) {
+		$Results.Add($match.Value) | out-null
+		$match = $match.NextMatch()
+	}
+	$DBAddress = $Results[2]
+	$DBName = $Results[3]
+	$DBLogin = $Results[5]
+	$DBPass = $Results[6]
+	$DBAddress = $DBAddress.Replace('=', '')
+	$DBAddress = $DBAddress.Replace(';', '')
+	$DBName = $DBName.Replace('=', '')
+	$DBName = $DBName.Replace(';', '')
+	$DBLogin = $DBLogin.Replace('=', '')
+	$DBLogin = $DBLogin.Replace(';', '')
+	$DBPass = $DBPass.Replace('=', '')
+	$DBPass = $DBPass.Replace(';', '')
+}
+
+
+if ($MultiChoose -eq 1) {
+	$Form1ComboBox1 = New-Object System.Windows.Forms.Combobox
+	$Form1ComboBox1.Location = New-Object System.Drawing.Point (120, 30)
+	$Form1ComboBox1.Size = New-Object System.Drawing.Size(300,30)
+	$Form1ComboBox1.Enabled = $False
+	
+	$Form1Label8 = New-Object System.Windows.Forms.Label
+	$Form1Label8.Location = New-Object System.Drawing.Point(30,32)
+	$Form1Label8.Size = New-Object System.Drawing.Size(80,20)
+
+	$Form1Button8 = New-Object System.Windows.Forms.Button
+	$Form1Button8.Text = "Multichoose disabled"
+	$Form1Button8.Location = New-Object System.Drawing.Point(435, 15)
+	$Form1Button8.Size = New-Object System.Drawing.Size(100, 50)
+	$Form1Button8.Enabled = $False
+	
+	$Form1Button8.Enabled = $True
+	$Form1Label8.Text = "Directory:"
+	$Form1ComboBox1.Enabled = $True
+	$Form1Button8.Text = "Load data"
+	foreach ($Directory in $MultiChooseDirectories) {
+            $Form1ComboBox1.Items.Add($Directory)
+			}
+	$Form1ComboBox1.SelectedIndex = 0
+	$FilePath = $Form1ComboBox1.Text 
+	$Form1Button8.Add_Click(
+	{
+		$Form1Label9 = New-Object System.Windows.Forms.Label
+		$Form1Label9.Text = "CONFIG UTILITY"
+		$Form1Label9.Font = new Font("Calibri", 38)
+		$Form1Label9.Location = New-Object System.Drawing.Point(20,20)
+		$Form1Label9.Size = New-Object System.Drawing.Size(700,50)
+
+		$FilePath = $Form1ComboBox1.Text 
+		Directory-Check
+		Get-ConnString
+	}	
+)
+}
+else {
+	$FilePath = $CMMSDirectory
+	Directory-Check
+	Get-ConnString
+}
+
 ###################### DEFINIOWANIE GUI									
 $Form1 = New-Object system.Windows.Forms.Form
 $Form1.Text = "Informacje o kliencie CMMS"
@@ -188,10 +334,6 @@ $Form1Label7.Text = "scripted by mmendrygal@queris.pl"
 $Form1Label7.Location = New-Object System.Drawing.Point(20, 270)
 $Form1Label7.Size = New-Object System.Drawing.Size(400, 25)
 
-$Form1Label8 = New-Object System.Windows.Forms.Label
-$Form1Label8.Location = New-Object System.Drawing.Point(30,32)
-$Form1Label8.Size = New-Object System.Drawing.Size(80,20)
-
 $Form2Label1 = New-Object System.Windows.Forms.Label
 $Form2Label1.Text = "Service Path: $ServiceConfig"
 $Form2Label1.Location = New-Object System.Drawing.Point (20, 18)
@@ -320,12 +462,6 @@ $Form1Button7.Text = "Modify endpoints"
 $Form1Button7.Location = New-Object System.Drawing.Point(435, 190)
 $Form1Button7.Size = New-Object System.Drawing.Size(100, 50)
 
-$Form1Button8 = New-Object System.Windows.Forms.Button
-$Form1Button8.Text = "Multichoose disabled"
-$Form1Button8.Location = New-Object System.Drawing.Point(435, 15)
-$Form1Button8.Size = New-Object System.Drawing.Size(100, 50)
-$Form1Button8.Enabled = $False
-
 $Form2Button1 = New-Object System.Windows.Forms.Button
 $Form2Button1.Text = "OK"
 $Form2Button1.Location = New-Object System.Drawing.Point(170, 142)
@@ -362,177 +498,6 @@ $Form4Button1.Text = "Save and set endpoints"
 $Form4Button1.Location = New-Object System.Drawing.Point (780, 160)
 $Form4Button1.Size = New-Object System.Drawing.Size(220,30)
 
-$Form1ComboBox1 = New-Object System.Windows.Forms.Combobox
-$Form1ComboBox1.Location = New-Object System.Drawing.Point (120, 30)
-$Form1ComboBox1.Size = New-Object System.Drawing.Size(300,30)
-$Form1ComboBox1.Enabled = $False
-
-###################### MULTIWYBÓR
-if ($MultiChoose -eq $True) {
-	$Form1Button8.Enabled = $True
-	$Form1Label8.Text = "Directory:"
-	$Form1ComboBox1.Enabled = $True
-	$Form1Button8.Text = "Load data"
-	foreach ($Directory in $MultiChooseDirectories) {
-            $Form1ComboBox1.Items.Add($Directory)
-			}
-	$Form1ComboBox1.SelectedIndex = 0
-	$FilePath = $Form1ComboBox1.Text 
-}
-else {
-	$FilePath = $CMMSDirectory
-}
-###################### SPRAWDZANIE STRUKTURY KATALOGÓW & TWORZENIE ZMIENNYCH	
-$NewStructure = $FilePath + "\RestService\"
-$OldStructure = $FilePath + "\RRM3RestService\"
-$CheckNewPath = Test-Path $NewStructure
-$CheckOldPath = Test-Path $OldStructure
-if ($CheckNewPath -eq $True) {
-    $RestFilePath = $FilePath + "\RestService\"
-    $ServiceFilePath = $FilePath + "\Service\"
-    $WebClientFilePath = $FilePath + "\WebClient\"
-    $ClientFilePath = $FilePath + "\Client\"
-    $Attachments = $FilePath + "\Attachments"
-    $Labels = $FilePath + "\Service\Labels"
-    $Temp = $FilePath + "\Service\Temp"
-    $Mobile = $FilePath + "\Service\Temp\RRM3Mobile\RRM3Mobile.exe"
-    $Apk = $FilePath + "\RestService\Android\CMMSMobile.apk"
-    $TV = $FilePath + "\RestService\Tv\Tv.zip"
-    $RestConfig = $RestFilePath + "Web.config"
-    $ServiceConfig = $ServiceFilePath + "Web.config"
-    $WebClientConfig = $WebClientFilePath + "Web.config"
-    $ClientConfig = $ClientFilePath + "RRM3.exe.config"
-    $ExeFile = $ClientFilePath + "RRM3.exe"
-}
-else {
-    if ($CheckOldPath -eq $True) {
-        $RestFilePath = $FilePath + "\RRM3RestService\"
-        $ServiceFilePath = $FilePath + "\RRM3Services\"
-        $WebClientFilePath = $FilePath + "\RRM3WebClient\"
-        $ClientFilePath = $FilePath + "\RRM3Client\"
-        $Attachments = $FilePath + "\Attachments"
-        $Labels = $FilePath + "\RRM3Services\Labels"
-        $Temp = $FilePath + "\RRM3Services\Temp"
-        $Mobile = $FilePath + "\RRM3Services\Temp\RRM3Mobile\RRM3Mobile.exe"
-        $Apk = $FilePath + "\RRM3RestService\Android\CMMSMobile.apk"
-        $TV = $FilePath + "\RRM3RestService\Tv\Tv.zip"
-        $RestConfig = $RestFilePath + "Web.config"
-        $ServiceConfig = $ServiceFilePath + "Web.config"
-        $WebClientConfig = $WebClientFilePath + "Web.config"
-        $ClientConfig = $ClientFilePath + "RRM3.exe.config"
-        $ExeFile = $ClientFilePath + "RRM3.exe"
-    }
-    else {
-        [System.Windows.MessageBox]::Show("Nie odnaleziono struktury katalogow CMMS. Upewnij sie, ze sciezka w pliku ConfigScriptGui.config jest prawidlowa!.", "System failure!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)
-        return
-    }
-}
-###################### ZALADOWANIE DANYCH Z AUTOMATU
-###################### POBRANIE WERSJI Z RRM3.EXE					
-[xml]$ClientConfigContents = Get-Content $ClientConfig
-$ClientVersion = $ClientConfigContents.SelectSingleNode('/configuration/appSettings/add')
-$ClientVersion = $ClientVersion.Value
-###################### ZALADOWANIE DANYCH DO EDITBOXOW				
-[xml]$ServiceConfigContents = Get-Content $ServiceConfig
-$ConnectionString = $ServiceConfigContents.configuration.connectionStrings.add.ConnectionString
-$Results = new-object System.Collections.Specialized.StringCollection
-$regex = [regex] '=(\w.*?);'
-$match = $regex.Match($ConnectionString)
-while ($match.Success) {
-    $Results.Add($match.Value) | out-null
-    $match = $match.NextMatch()
-}
-$DBAddress = $Results[2]
-$DBName = $Results[3]
-$DBLogin = $Results[5]
-$DBPass = $Results[6]
-$DBAddress = $DBAddress.Replace('=', '')
-$DBAddress = $DBAddress.Replace(';', '')
-$DBName = $DBName.Replace('=', '')
-$DBName = $DBName.Replace(';', '')
-$DBLogin = $DBLogin.Replace('=', '')
-$DBLogin = $DBLogin.Replace(';', '')
-$DBPass = $DBPass.Replace('=', '')
-$DBPass = $DBPass.Replace(';', '')
-
-###################### ZALADOWANIE DANYCH BUTTONEM
-$Form1Button8.Add_Click(
-	{
-		$FilePath = $Form1ComboBox1.Text 
-		###################### SPRAWDZANIE STRUKTURY KATALOGÓW & TWORZENIE ZMIENNYCH	
-		$NewStructure = $FilePath + "\RestService\"
-		$OldStructure = $FilePath + "\RRM3RestService\"
-		$CheckNewPath = Test-Path $NewStructure
-		$CheckOldPath = Test-Path $OldStructure
-		if ($CheckNewPath -eq $True) {
-			$RestFilePath = $FilePath + "\RestService\"
-			$ServiceFilePath = $FilePath + "\Service\"
-			$WebClientFilePath = $FilePath + "\WebClient\"
-			$ClientFilePath = $FilePath + "\Client\"
-			$Attachments = $FilePath + "\Attachments"
-			$Labels = $FilePath + "\Service\Labels"
-			$Temp = $FilePath + "\Service\Temp"
-			$Mobile = $FilePath + "\Service\Temp\RRM3Mobile\RRM3Mobile.exe"
-			$Apk = $FilePath + "\RestService\Android\CMMSMobile.apk"
-			$TV = $FilePath + "\RestService\Tv\Tv.zip"
-			$RestConfig = $RestFilePath + "Web.config"
-			$ServiceConfig = $ServiceFilePath + "Web.config"
-			$WebClientConfig = $WebClientFilePath + "Web.config"
-			$ClientConfig = $ClientFilePath + "RRM3.exe.config"
-			$ExeFile = $ClientFilePath + "RRM3.exe"
-		}
-		else {
-			if ($CheckOldPath -eq $True) {
-			    $RestFilePath = $FilePath + "\RRM3RestService\"
-				$ServiceFilePath = $FilePath + "\RRM3Services\"
-				$WebClientFilePath = $FilePath + "\RRM3WebClient\"
-				$ClientFilePath = $FilePath + "\RRM3Client\"
-				$Attachments = $FilePath + "\Attachments"
-				$Labels = $FilePath + "\RRM3Services\Labels"
-				$Temp = $FilePath + "\RRM3Services\Temp"
-				$Mobile = $FilePath + "\RRM3Services\Temp\RRM3Mobile\RRM3Mobile.exe"
-				$Apk = $FilePath + "\RRM3RestService\Android\CMMSMobile.apk"
-				$TV = $FilePath + "\RRM3RestService\Tv\Tv.zip"
-				$RestConfig = $RestFilePath + "Web.config"
-				$ServiceConfig = $ServiceFilePath + "Web.config"
-				$WebClientConfig = $WebClientFilePath + "Web.config"
-				$ClientConfig = $ClientFilePath + "RRM3.exe.config"
-				$ExeFile = $ClientFilePath + "RRM3.exe"
-			}
-			else {
-				[System.Windows.MessageBox]::Show("Nie odnaleziono struktury katalogow CMMS. Upewnij sie, ze sciezka w pliku ConfigScriptGui.config jest prawidlowa!.", "System failure!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)
-				return
-			}
-		}
-	
-		###################### POBRANIE WERSJI Z RRM3.EXE					
-		[xml]$ClientConfigContents = Get-Content $ClientConfig
-		$ClientVersion = $ClientConfigContents.SelectSingleNode('/configuration/appSettings/add')
-		$ClientVersion = $ClientVersion.Value
-		###################### ZALADOWANIE DANYCH DO EDITBOXOW				
-		[xml]$ServiceConfigContents = Get-Content $ServiceConfig
-		$ConnectionString = $ServiceConfigContents.configuration.connectionStrings.add.ConnectionString
-		$Results = new-object System.Collections.Specialized.StringCollection
-		$regex = [regex] '=(\w.*?);'
-		$match = $regex.Match($ConnectionString)
-		while ($match.Success) {
-			$Results.Add($match.Value) | out-null
-			$match = $match.NextMatch()
-		}
-		$DBAddress = $Results[2]
-		$DBName = $Results[3]
-		$DBLogin = $Results[5]
-		$DBPass = $Results[6]
-		$DBAddress = $DBAddress.Replace('=', '')
-		$DBAddress = $DBAddress.Replace(';', '')
-		$DBName = $DBName.Replace('=', '')
-		$DBName = $DBName.Replace(';', '')
-		$DBLogin = $DBLogin.Replace('=', '')
-		$DBLogin = $DBLogin.Replace(';', '')
-		$DBPass = $DBPass.Replace('=', '')
-		$DBPass = $DBPass.Replace(';', '')
-	}	
-)
 ###################### EDYCJA CONNECTIONSTRING							
 $Form1Button1.Add_Click(
     {
@@ -958,6 +923,7 @@ $Form1.Controls.Add($Form1Label5)
 $Form1.Controls.Add($Form1Label6)
 $Form1.Controls.Add($Form1Label7)
 $Form1.Controls.Add($Form1Label8)
+$Form1.Contrils.Add($Form1Label9)
 $Form2.Controls.Add($Form2Label1)
 $Form2.Controls.Add($Form2Label2)
 $Form2.Controls.Add($Form2Label3)
@@ -981,3 +947,9 @@ $Form4.Controls.Add($Form4Label6)
 ######################  Comboboxy ###################### 
 $Form1.Controls.Add($Form1ComboBox1)
 $Form1.ShowDialog()
+
+
+if ($HideConsole -eq $False) {
+	Write-Host "Press any key to exit"
+	Read-Host | Out-Null
+}
