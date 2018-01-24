@@ -10,22 +10,24 @@ if ($HideConsole -eq $True) {
 	[Console.Window]::ShowWindow($consolePtr, 0)
 }
 else {
-	Write-Host "Console available. Entering test mode."
+	Write-Host "Console is enabled."
 }
 ###################### SELF-ELEVATION
-if ($Elevateable -eq $True) {
-	Write-Host "Attempting to run script elevated..."
-	if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
-		if ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
-			$CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
-			Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
-			Exit
+Try {
+	if ($Elevateable -eq $True) {
+		Write-Host "Attempting to run script elevated..."
+		if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
+			if ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
+				$CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
+				Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
+				Exit
+			}
 		}
 	}
 	[bool]$Elevated = 1
 	Write-Host "Script is elevated"
 }
-else {
+Catch {
 	[System.Windows.MessageBox]::Show("Script runs in non-elevated mode. There might be issue with overwriting files and IIS is not accessible.", "Script not elevated!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)
 	Write-Host "Script is NOT elevated"
 }
