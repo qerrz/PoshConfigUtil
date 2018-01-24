@@ -1,5 +1,5 @@
 ﻿###################### USTAWIENIA SKRYPTU								
-[bool]$HideConsole = 1
+[bool]$HideConsole = 0
 [string]$CMMSDirectory = 'C:\Queris\CMMS'
 ###################### HIDECONSOLE	
 if ($HideConsole -eq $True) {
@@ -105,8 +105,13 @@ $DBLogin = $DBLogin.Replace('=', '')
 $DBLogin = $DBLogin.Replace(';', '')
 $DBPass = $DBPass.Replace('=', '')
 $DBPass = $DBPass.Replace(';', '')
-###################### DEFINIOWANIE GUI									
 
+###################### POBRANIE DANYCH Z IIS
+
+
+
+
+###################### DEFINIOWANIE GUI									
 $Form1 = New-Object system.Windows.Forms.Form
 $Form1.Text = "Informacje o kliencie CMMS"
 $Form1.AutoScroll = $True
@@ -492,7 +497,7 @@ $Form1Button2.Add_Click(
         $connectionString = 'metadata=res://*/RrmDBModel.csdl|res://*/RrmDBModel.ssdl|res://*/RrmDBModel.msl;provider=System.Data.SqlClient;provider connection string="data source=' + $Form1TextBox1.Text + ';initial catalog=' + $Form1TextBox2.Text + ';persist security info=True;user id=' + $Form1TextBox3.Text + ';password=' + $Form1TextBox4.Text + ';MultipleActiveResultSets=True;App=EntityFramework"'
         
         [bool]$ErrorFlag = 0
-        ###################### SPRAWDZENIE - WEBCLIENT ######################
+        ###################### ZAPIS - STARY WEBCLIENT ######################
         Try {
             $FileToEdit = $WebClientConfig
             [xml]$xml1 = Get-Content $FileToEdit
@@ -513,7 +518,14 @@ $Form1Button2.Add_Click(
             }
             $ErrorFlag = 1
         }
-        ###################### SPRAWDZENIE - RESTSERVICE ######################
+		###################### ZAPIS - NOWY WEBCLIENT - CZEKA NA IIS ######################
+		#Try {
+		#	$FileToEdit5 = $NewWebClientConfig
+		#	[xml]$xml5 = Get-Content $FileToEdit5
+		#	$xml5.Load($FileToEdit5)
+		#	$node5 = $xml5.SelectSingleNode('')
+		#}
+        ###################### ZAPIS - RESTSERVICE ######################
         Try {
             $FileToEdit2 = $RestConfig
             [xml]$xml2 = Get-Content $FileToEdit2
@@ -534,7 +546,7 @@ $Form1Button2.Add_Click(
             }
             $ErrorFlag = 1
         }
-        ###################### SPRAWDZENIE - SERVICE ######################
+        ###################### ZAPIS - SERVICE ######################
         Try {
             $FileToEdit3 = $ServiceConfig
             [xml]$xml3 = Get-Content $FileToEdit3
@@ -555,7 +567,7 @@ $Form1Button2.Add_Click(
             }
             $ErrorFlag = 1
         }
-        ###################### SPRAWDZENIE - EXE.CONFIG ######################
+        ###################### ZAPIS - EXE.CONFIG ######################
         Try {
             $FileToEdit4 = $ClientConfig
             [xml]$xml4 = Get-Content $FileToEdit4
@@ -842,13 +854,13 @@ $Form3Button5.Add_Click(
         $Form3Label10.Text = "Count: $LB3Counter"
     }
 )
-###################### WYSWIETLENIE SCIEZEK DO PLIKOW
+###################### PATHLIST_FORM_OPEN
 $Form1Button3.Add_Click(
     {
         $Form2.ShowDialog()
     }
 )
-###################### ZAMYKANIE FORM2 
+###################### PATHLIST_FORM_CLOSE
 $Form2Button1.Add_Click(
     {
         $Form2.Close()
