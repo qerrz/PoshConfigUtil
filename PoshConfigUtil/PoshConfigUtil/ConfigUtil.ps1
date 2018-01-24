@@ -1,5 +1,7 @@
 ﻿###################### USTAWIENIA SKRYPTU								
 [bool]$HideConsole = 0
+[bool]$Elevateable = 1
+[bool]$BypassExecPolicy = 1
 [string]$CMMSDirectory = 'C:\Queris\CMMS'
 ###################### HIDECONSOLE	
 if ($HideConsole -eq $True) {
@@ -11,12 +13,33 @@ else {
 	Write-Host "Console available. Entering test mode."
 }
 ###################### SELF-ELEVATION
-if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
-	if ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
-	$CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
-	Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
-	Exit
+if ($Elevateable -eq $True) {
+	Write-Host "Attempting to run script elevated..."
+	if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
+		if ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
+			$CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
+			Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
+			Exit
+		}
 	}
+	[bool]$Elevated = 1
+	Write-Host "Script is elevated"
+}
+else {
+	[System.Windows.MessageBox]::Show("Script runs in non-elevated mode. There might be issue with overwriting files and IIS is not accessible.", "Script not elevated!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)
+	Write-Host "Script is NOT elevated"
+}
+###################### EXECUTION POLICY FORCE
+Try {
+	Write-Host "Attempting to bypass ExecutionPolicy..."
+	if ($Elevated -eq $True) {
+		Set-ExecutionPolicy Bypass -Force
+		Write-Host "ExecutionPolicy bypass is active"
+	}
+}
+Catch {
+	[System.Windows.MessageBox]::Show("ExecutionPolicy bypass failed. Script might not run properly", "Bypass failed!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)
+	Write-Host "ExecutionPolicy bypass is NOT active"
 }
 ###################### ZALADOWANIE KOMPONENTOW					
 Add-Type -AssemblyName System.Windows.Forms, PresentationCore, PresentationFramework
@@ -485,7 +508,7 @@ $Form5Label4.Text = "HTTP"
 
 $Form5Label5 = New-Object System.Windows.Forms.Label
 $Form5Label5.Location = New-Object System.Drawing.Point (540, 60)
-$Form5Label5.Size = New-Object System.Drawing.Size(50, 25)
+$Form5Label5.Size = New-Object System.Drawing.Size(70, 25)
 $Form5Label5.Text = "NET.TCP"
 
 $Form1Button1 = New-Object System.Windows.Forms.Button
@@ -516,6 +539,12 @@ $Form1Button5.Size = New-Object System.Drawing.Size(100, 50)
 
 $Form1Button6 = New-Object System.Windows.Forms.Button
 $Form1Button6.Text = "IIS Operations"
+if ($Elevated -eq $True) {
+	$Form1Button6.Enabled = $True
+	}
+	else {
+		$Form1Button6.Enabled = $False
+	}
 $Form1Button6.Location = New-Object System.Drawing.Point(435, 75)
 $Form1Button6.Size = New-Object System.Drawing.Size(100, 50)
 
@@ -1048,3 +1077,4 @@ $Form5.Controls.Add($Form5Label3)
 $Form5.Controls.Add($Form5Label4)
 $Form5.Controls.Add($Form5Label5)
 $Form1.ShowDialog()
+
