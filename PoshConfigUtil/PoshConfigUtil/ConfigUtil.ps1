@@ -48,6 +48,16 @@ if ($CheckNewPath -eq $True) {
     $ExeFile = $ClientFilePath + "RRM3.exe"
 	$PanelConfig = $PanelFilePath + "CMMS.Panel.exe.config"
 	$CheckOldWebPath = Test-Path $OldWebClientFilePath
+	$CheckNewWebPath = Test-Path $NewWebClientFilePath
+	if ($CheckNewWebPath -eq $True) {
+		$WebFilePath = $NewWebClientFilePath
+	}
+	elseif ($CheckOldWebPath -eq $True) {
+		$WebFilePath = $OldWebClientFilePath
+	}
+	else {
+		$WebFilePath = "Web not found on this instance"
+	} 
 	Write-Host "New structure loaded"
 }
 else {
@@ -164,7 +174,7 @@ $Form4.Font = $Font
 
 $Form5 = New-Object System.Windows.Forms.Form
 $Form5.Text = "IIS Operations"
-$Form5.Width = 690
+$Form5.Width = 890
 $Form5.Height = 360
 $Form5.MinimizeBox = $True
 $Form5.MaximizeBox = $False
@@ -177,8 +187,6 @@ $Form5.Font = $Font
 $Form1TextBox1 = New-Object System.Windows.Forms.TextBox
 $Form1TextBox1.ReadOnly = $true
 $Form1TextBox1.BorderStyle = 2
-$Form1TextBox1.TabStop = $false
-$Form1TextBox1.TabIndex = 1
 $Form1TextBox1.Text = $DBAddress
 $Form1TextBox1.Location = New-Object System.Drawing.Point(100, 45)
 $Form1TextBox1.Size = New-Object System.Drawing.Size(180, 12)
@@ -186,8 +194,6 @@ $Form1TextBox1.Size = New-Object System.Drawing.Size(180, 12)
 $Form1TextBox2 = New-Object System.Windows.Forms.TextBox
 $Form1TextBox2.ReadOnly = $true
 $Form1TextBox2.BorderStyle = 2
-$Form1TextBox2.TabStop = $false
-$Form1TextBox2.TabIndex = 2
 $Form1TextBox2.Text = $DBName
 $Form1TextBox2.Location = New-Object System.Drawing.Point(100, 75)
 $Form1TextBox2.Size = New-Object System.Drawing.Size(180, 12)
@@ -195,8 +201,6 @@ $Form1TextBox2.Size = New-Object System.Drawing.Size(180, 12)
 $Form1TextBox3 = New-Object System.Windows.Forms.TextBox
 $Form1TextBox3.ReadOnly = $true
 $Form1TextBox3.BorderStyle = 2
-$Form1TextBox3.TabStop = $false
-$Form1TextBox3.TabIndex = 3
 $Form1TextBox3.Text = $DBLogin
 $Form1TextBox3.Location = New-Object System.Drawing.Point(100, 105)
 $Form1TextBox3.Size = New-Object System.Drawing.Size(180, 12)
@@ -204,8 +208,6 @@ $Form1TextBox3.Size = New-Object System.Drawing.Size(180, 12)
 $Form1TextBox4 = New-Object System.Windows.Forms.TextBox
 $Form1TextBox4.ReadOnly = $true
 $Form1TextBox4.BorderStyle = 2
-$Form1TextBox4.TabStop = $false
-$Form1TextBox4.TabIndex = 4
 $Form1TextBox4.Text = $DBPass
 $Form1TextBox4.Location = New-Object System.Drawing.Point(100, 135)
 $Form1TextBox4.Size = New-Object System.Drawing.Size(180, 12)
@@ -213,25 +215,89 @@ $Form1TextBox4.Size = New-Object System.Drawing.Size(180, 12)
 $Form1TextBox5 = New-Object System.Windows.Forms.TextBox
 $Form1TextBox5.ReadOnly = $true
 $Form1TextBox5.BorderStyle = 2
-$Form1TextBox5.TabStop = $false
-$Form1TextBox5.TabIndex = 5
 $Form1TextBox5.Text = $ClientVersion
 $Form1TextBox5.Location = New-Object System.Drawing.Point(100, 165)
 $Form1TextBox5.Size = New-Object System.Drawing.Size(180, 12)
 
 $Form4TextBox1 = New-Object System.Windows.Forms.TextBox
 $Form4TextBox1.BorderStyle = 2
-$Form4TextBox1.TabStop = $false
-$Form4TextBox1.TabIndex = 1
 $Form4TextBox1.Location = New-Object System.Drawing.Point(270, 60)
 $Form4TextBox1.Size = New-Object System.Drawing.Size(60, 12)
 
 $Form4TextBox2 = New-Object System.Windows.Forms.TextBox
 $Form4TextBox2.BorderStyle = 2
-$Form4TextBox2.TabStop = $false
-$Form4TextBox2.TabIndex = 2
 $Form4TextBox2.Location = New-Object System.Drawing.Point(50, 60)
 $Form4TextBox2.Size = New-Object System.Drawing.Size(200, 12)
+
+$Form5TextBox1 = New-Object System.Windows.Forms.TextBox
+$Form5TextBox1.BorderStyle = 2
+$Form5TextBox1.Text = "Strona - Serwis"
+$Form5TextBox1.Location = New-Object System.Drawing.Point(50, 90)
+$Form5TextBox1.Size = New-Object System.Drawing.Size(200, 12)
+$Form5TextBox1.ReadOnly = $true
+
+$Form5TextBox2 = New-Object System.Windows.Forms.TextBox
+$Form5TextBox2.BorderStyle = 2
+$Form5TextBox2.Text = "$ServiceFilePath"
+$Form5TextBox2.Location = New-Object System.Drawing.Point(260, 90)
+$Form5TextBox2.Size = New-Object System.Drawing.Size(200, 12)
+$Form5TextBox2.ReadOnly = $true
+
+$Form5TextBox3 = New-Object System.Windows.Forms.TextBox
+$Form5TextBox3.BorderStyle = 2
+$Form5TextBox3.Text = "Strona - Web"
+$Form5TextBox3.Location = New-Object System.Drawing.Point(50, 120)
+$Form5TextBox3.Size = New-Object System.Drawing.Size(200, 12)
+$Form5TextBox3.ReadOnly = $true
+
+$Form5TextBox4 = New-Object System.Windows.Forms.TextBox
+$Form5TextBox4.BorderStyle = 2
+$Form5TextBox4.Text = "$WebFilePath"
+$Form5TextBox4.Location = New-Object System.Drawing.Point(260, 120)
+$Form5TextBox4.Size = New-Object System.Drawing.Size(200, 12)
+$Form5TextBox4.ReadOnly = $true
+
+$Form5TextBox5 = New-Object System.Windows.Forms.TextBox
+$Form5TextBox5.BorderStyle = 2
+$Form5TextBox5.Text = "Strona - Rest"
+$Form5TextBox5.Location = New-Object System.Drawing.Point(50, 150)
+$Form5TextBox5.Size = New-Object System.Drawing.Size(200, 12)
+$Form5TextBox5.ReadOnly = $true
+
+$Form5TextBox6 = New-Object System.Windows.Forms.TextBox
+$Form5TextBox6.BorderStyle = 2
+$Form5TextBox6.Text = "$RestFilePath"
+$Form5TextBox6.Location = New-Object System.Drawing.Point(260, 150)
+$Form5TextBox6.Size = New-Object System.Drawing.Size(200, 12)
+$Form5TextBox6.ReadOnly = $true
+
+$Form5TextBox7 = New-Object System.Windows.Forms.TextBox
+$Form5TextBox7.BorderStyle = 2
+$Form5TextBox7.Text = "Port1"
+$Form5TextBox7.Location = New-Object System.Drawing.Point(470, 90)
+$Form5TextBox7.Size = New-Object System.Drawing.Size(60, 12)
+$Form5TextBox7.ReadOnly = $true
+
+$Form5TextBox8 = New-Object System.Windows.Forms.TextBox
+$Form5TextBox8.BorderStyle = 2
+$Form5TextBox8.Text = "Port2"
+$Form5TextBox8.Location = New-Object System.Drawing.Point(540, 90)
+$Form5TextBox8.Size = New-Object System.Drawing.Size(60, 12)
+$Form5TextBox8.ReadOnly = $true
+
+$Form5TextBox9 = New-Object System.Windows.Forms.TextBox
+$Form5TextBox9.BorderStyle = 2
+$Form5TextBox9.Text = "Port3"
+$Form5TextBox9.Location = New-Object System.Drawing.Point(470, 120)
+$Form5TextBox9.Size = New-Object System.Drawing.Size(60, 12)
+$Form5TextBox9.ReadOnly = $true
+
+$Form5TextBox10 = New-Object System.Windows.Forms.TextBox
+$Form5TextBox10.BorderStyle = 2
+$Form5TextBox10.Text = "Port4"
+$Form5TextBox10.Location = New-Object System.Drawing.Point(470, 150)
+$Form5TextBox10.Size = New-Object System.Drawing.Size(60, 12)
+$Form5TextBox10.ReadOnly = $true
 
 $Form3ListBox1 = New-Object System.Windows.Forms.Listbox
 $Form3ListBox1.BorderStyle = 1
@@ -396,6 +462,31 @@ $Form4Label7 = New-Object System.Windows.Forms.Label
 $Form4Label7.Location = New-Object System.Drawing.Point (50, 100)
 $Form4Label7.Size = New-Object System.Drawing.Size(130, 35)
 $Form4Label7.Text = "or choose it."
+
+$Form5Label1 = New-Object System.Windows.Forms.Label
+$Form5Label1.Location = New-Object System.Drawing.Point (50, 25)
+$Form5Label1.Size = New-Object System.Drawing.Size(300, 25)
+$Form5Label1.Text = "IIS Websites for this CMMS instance"
+
+$Form5Label2 = New-Object System.Windows.Forms.Label
+$Form5Label2.Location = New-Object System.Drawing.Point (50, 60)
+$Form5Label2.Size = New-Object System.Drawing.Size(100, 25)
+$Form5Label2.Text = "Website"
+
+$Form5Label3 = New-Object System.Windows.Forms.Label
+$Form5Label3.Location = New-Object System.Drawing.Point (260, 60)
+$Form5Label3.Size = New-Object System.Drawing.Size(100, 25)
+$Form5Label3.Text = "Phys. Path"
+
+$Form5Label4 = New-Object System.Windows.Forms.Label
+$Form5Label4.Location = New-Object System.Drawing.Point (470, 60)
+$Form5Label4.Size = New-Object System.Drawing.Size(50, 25)
+$Form5Label4.Text = "HTTP"
+
+$Form5Label5 = New-Object System.Windows.Forms.Label
+$Form5Label5.Location = New-Object System.Drawing.Point (540, 60)
+$Form5Label5.Size = New-Object System.Drawing.Size(50, 25)
+$Form5Label5.Text = "NET.TCP"
 
 $Form1Button1 = New-Object System.Windows.Forms.Button
 $Form1Button1.Text = "Edit`nconn. data"
@@ -889,6 +980,16 @@ $Form1.Controls.Add($Form1TextBox4)
 $Form1.Controls.Add($Form1TextBox5)
 $Form4.Controls.Add($Form4TextBox1)
 $Form4.Controls.Add($Form4TextBox2)
+$Form5.Controls.Add($Form5TextBox1)
+$Form5.Controls.Add($Form5TextBox2)
+$Form5.Controls.Add($Form5TextBox3)
+$Form5.Controls.Add($Form5TextBox4)
+$Form5.Controls.Add($Form5TextBox5)
+$Form5.Controls.Add($Form5TextBox6)
+$Form5.Controls.Add($Form5TextBox7)
+$Form5.Controls.Add($Form5TextBox8)
+$Form5.Controls.Add($Form5TextBox9)
+$Form5.Controls.Add($Form5TextBox10)
 ######################  ListBoxy ###################### 
 $Form3.Controls.Add($Form3ListBox1)
 $Form3.Controls.Add($Form3ListBox2)
@@ -941,4 +1042,9 @@ $Form4.Controls.Add($Form4Label4)
 $Form4.Controls.Add($Form4Label5)
 $Form4.Controls.Add($Form4Label6)
 $Form4.Controls.Add($Form4Label7)
+$Form5.Controls.Add($Form5Label1)
+$Form5.Controls.Add($Form5Label2)
+$Form5.Controls.Add($Form5Label3)
+$Form5.Controls.Add($Form5Label4)
+$Form5.Controls.Add($Form5Label5)
 $Form1.ShowDialog()
