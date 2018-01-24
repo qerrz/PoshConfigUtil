@@ -1,14 +1,22 @@
 ﻿###################### USTAWIENIA SKRYPTU								
 [bool]$HideConsole = 1
 [string]$CMMSDirectory = 'C:\Queris\CMMS'
-###################### UKRYCIE KONSOLI	
-					if ($HideConsole -eq $True) {
-Add-Type -Name Window -Namespace Console -MemberDefinition '[DllImport("Kernel32.dll")]public static extern IntPtr GetConsoleWindow();[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
-$consolePtr = [Console.Window]::GetConsoleWindow()
-[Console.Window]::ShowWindow($consolePtr, 0)
+###################### HIDECONSOLE	
+if ($HideConsole -eq $True) {
+	Add-Type -Name Window -Namespace Console -MemberDefinition '[DllImport("Kernel32.dll")]public static extern IntPtr GetConsoleWindow();[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
+	$consolePtr = [Console.Window]::GetConsoleWindow()
+	[Console.Window]::ShowWindow($consolePtr, 0)
 }
-else{
+else {
 	Write-Host "Console available. Entering test mode."
+}
+###################### SELF-ELEVATION
+if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
+	if ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
+	$CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
+	Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
+	Exit
+	}
 }
 ###################### ZALADOWANIE KOMPONENTOW					
 Add-Type -AssemblyName System.Windows.Forms, PresentationCore, PresentationFramework
@@ -22,9 +30,11 @@ $CheckOldPath = Test-Path $OldStructure
 if ($CheckNewPath -eq $True) {
     $RestFilePath = $FilePath + "\RestService\"
     $ServiceFilePath = $FilePath + "\Service\"
-    $WebClientFilePath = $FilePath + "\WebClient\"
+    $OldWebClientFilePath = $FilePath + "\WebClient\"
+	$NewWebClientFilepath = $FilePath + "\Web\"
     $ClientFilePath = $FilePath + "\Client\"
-    $Attachments = $FilePath + "\Attachments"
+    $Attachments = $FilePath + "\Attachments\"
+	$PanelFilePath = $FilePath + "\Panel\"
     $Labels = $FilePath + "\Service\Labels"
     $Temp = $FilePath + "\Service\Temp"
     $Mobile = $FilePath + "\Service\Temp\RRM3Mobile\RRM3Mobile.exe"
@@ -32,18 +42,23 @@ if ($CheckNewPath -eq $True) {
     $TV = $FilePath + "\RestService\Tv\Tv.zip"
     $RestConfig = $RestFilePath + "Web.config"
     $ServiceConfig = $ServiceFilePath + "Web.config"
-    $WebClientConfig = $WebClientFilePath + "Web.config"
+    $OldWebClientConfig = $OldWebClientFilePath + "Web.config"
+	$NewWebClientConfig = $NewWebClientFilePath + "config\config.json"
     $ClientConfig = $ClientFilePath + "RRM3.exe.config"
     $ExeFile = $ClientFilePath + "RRM3.exe"
+	$PanelConfig = $PanelFilePath + "CMMS.Panel.exe.config"
+	$CheckOldWebPath = Test-Path $OldWebClientFilePath
 	Write-Host "New structure loaded"
 }
 else {
     if ($CheckOldPath -eq $True) {
         $RestFilePath = $FilePath + "\RRM3RestService\"
         $ServiceFilePath = $FilePath + "\RRM3Services\"
-        $WebClientFilePath = $FilePath + "\RRM3WebClient\"
+        $OldWebClientFilePath = $FilePath + "\RRM3WebClient\"
+		$NewWebClientFilepath = $FilePath + "\Web\"
         $ClientFilePath = $FilePath + "\RRM3Client\"
-        $Attachments = $FilePath + "\Attachments"
+        $Attachments = $FilePath + "\Attachments\"
+		$PanelFilePath = $FilePath + "\Panel\"
         $Labels = $FilePath + "\RRM3Services\Labels"
         $Temp = $FilePath + "\RRM3Services\Temp"
         $Mobile = $FilePath + "\RRM3Services\Temp\RRM3Mobile\RRM3Mobile.exe"
@@ -51,9 +66,11 @@ else {
         $TV = $FilePath + "\RRM3RestService\Tv\Tv.zip"
         $RestConfig = $RestFilePath + "Web.config"
         $ServiceConfig = $ServiceFilePath + "Web.config"
-        $WebClientConfig = $WebClientFilePath + "Web.config"
+        $OldWebClientConfig = $OldWebClientFilePath + "Web.config"
+		$NewWebClientConfig = $NewWebClientFilePath + "config\config.json"
         $ClientConfig = $ClientFilePath + "RRM3.exe.config"
         $ExeFile = $ClientFilePath + "RRM3.exe"
+		$PanelConfig = $PanelFilePath + "CMMS.Panel.exe.config"
 		Write-Host "Old structure loaded"
     }
     else {
@@ -105,9 +122,9 @@ $Font = New-Object System.Drawing.Font("Calibri", 12)
 $Form1.Font = $Font
 
 $Form2 = New-Object System.Windows.Forms.Form
-$Form2.Text = "List of config files to modify"
+$Form2.Text = "List of loaded files/directories"
 $Form2.Width = 450
-$Form2.Height = 220
+$Form2.Height = 310
 $Form2.MinimizeBox = $True
 $Form2.MaximizeBox = $False
 $Form2.WindowState = "Normal"
@@ -139,6 +156,18 @@ $Form4.FormBorderStyle = "FixedSingle"
 $Form4.SizeGripStyle = "Hide"
 $Form4.ShowInTaskbar = $False
 $Form4.Font = $Font
+
+$Form5 = New-Object System.Windows.Forms.Form
+$Form5.Text = "IIS Operations"
+$Form5.Width = 690
+$Form5.Height = 360
+$Form5.MinimizeBox = $True
+$Form5.MaximizeBox = $False
+$Form5.WindowState = "Normal"
+$Form5.FormBorderStyle = "FixedSingle"
+$Form5.SizeGripStyle = "Hide"
+$Form5.ShowInTaskbar = $False
+$Form5.Font = $Font
 
 $Form1TextBox1 = New-Object System.Windows.Forms.TextBox
 $Form1TextBox1.ReadOnly = $true
@@ -252,24 +281,39 @@ $Form1Label7.Location = New-Object System.Drawing.Point(20, 210)
 $Form1Label7.Size = New-Object System.Drawing.Size(400, 25)
 
 $Form2Label1 = New-Object System.Windows.Forms.Label
-$Form2Label1.Text = "Service Path: $ServiceConfig"
+$Form2Label1.Text = "Service Path: $ServiceFilePath"
 $Form2Label1.Location = New-Object System.Drawing.Point (20, 18)
 $Form2Label1.Size = New-Object System.Drawing.Size(500, 20)
 
 $Form2Label2 = New-Object System.Windows.Forms.Label
-$Form2Label2.Text = "RestService Path: $RestConfig"
+$Form2Label2.Text = "RestService Path: $RestFilePath"
 $Form2Label2.Location = New-Object System.Drawing.Point (20, 48)
 $Form2Label2.Size = New-Object System.Drawing.Size(500, 20)
 
 $Form2Label3 = New-Object System.Windows.Forms.Label
-$Form2Label3.Text = "WebClient Path: $WebClientConfig"
+$Form2Label3.Text = "Old WebClient Path: $OldWebClientFilePath"
 $Form2Label3.Location = New-Object System.Drawing.Point (20, 78)
 $Form2Label3.Size = New-Object System.Drawing.Size(500, 20)
 
 $Form2Label4 = New-Object System.Windows.Forms.Label
-$Form2Label4.Text = "Client Path: $ClientConfig"
+$Form2Label4.Text = "New Web Path: $NewWebClientFilePath"
 $Form2Label4.Location = New-Object System.Drawing.Point (20, 109)
 $Form2Label4.Size = New-Object System.Drawing.Size(500, 20)
+
+$Form2Label5 = New-Object System.Windows.Forms.Label
+$Form2Label5.Text = "Panel Path: $PanelFilePath"
+$Form2Label5.Location = New-Object System.Drawing.Point (20, 139)
+$Form2Label5.Size = New-Object System.Drawing.Size(500, 20)
+
+$Form2Label6 = New-Object System.Windows.Forms.Label
+$Form2Label6.Text = "Tv Path: $TV"
+$Form2Label6.Location = New-Object System.Drawing.Point (20, 169)
+$Form2Label6.Size = New-Object System.Drawing.Size(500, 20)
+
+$Form2Label7 = New-Object System.Windows.Forms.Label
+$Form2Label7.Text = "Client Path: $ClientFilePath"
+$Form2Label7.Location = New-Object System.Drawing.Point (20, 200)
+$Form2Label7.Size = New-Object System.Drawing.Size(500, 20)
 
 $Form3Label1 = New-Object System.Windows.Forms.Label
 $Form3Label1.Location = New-Object System.Drawing.Point (120, 10)
@@ -378,7 +422,6 @@ $Form1Button6 = New-Object System.Windows.Forms.Button
 $Form1Button6.Text = "IIS Operations"
 $Form1Button6.Location = New-Object System.Drawing.Point(435, 75)
 $Form1Button6.Size = New-Object System.Drawing.Size(100, 50)
-$Form1Button6.Enabled = $False
 
 $Form1Button7 = New-Object System.Windows.Forms.Button
 $Form1Button7.Text = "Modify endpoints"
@@ -387,7 +430,7 @@ $Form1Button7.Size = New-Object System.Drawing.Size(100, 50)
 
 $Form2Button1 = New-Object System.Windows.Forms.Button
 $Form2Button1.Text = "OK"
-$Form2Button1.Location = New-Object System.Drawing.Point(170, 142)
+$Form2Button1.Location = New-Object System.Drawing.Point(170, 232)
 $Form2Button1.Size = New-Object System.Drawing.Size(100, 25)
 
 $Form3Button1 = New-Object System.Windows.Forms.Button
@@ -811,13 +854,19 @@ $Form2Button1.Add_Click(
         $Form2.Close()
     }
 )
-###################### OTWARCIE MODULU SQL 
+###################### SQL_FORM_LOAD
 $Form1Button5.Add_Click(
     {
         $Form3.Width = 690
         $Form3Label1.Text = "Operating on database: " + $Form1TextBox2.Text + " on server:" + $Form1TextBox1.Text
         $Form3.ShowDialog()
     }
+)
+###################### IIS_FORM_LOAD
+$Form1Button6.Add_Click(
+	{
+		$Form5.ShowDialog()
+	}
 )
 ###################### INICJALIZACJA GUI 
 ######################  TextBoxy ###################### 
@@ -860,6 +909,9 @@ $Form2.Controls.Add($Form2Label1)
 $Form2.Controls.Add($Form2Label2)
 $Form2.Controls.Add($Form2Label3)
 $Form2.Controls.Add($Form2Label4)
+$Form2.Controls.Add($Form2Label5)
+$Form2.Controls.Add($Form2Label6)
+$Form2.Controls.Add($Form2Label7)
 $Form3.Controls.Add($Form3Label1)
 $Form3.Controls.Add($Form3Label2)
 $Form3.Controls.Add($Form3Label3)
