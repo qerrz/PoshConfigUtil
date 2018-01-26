@@ -45,6 +45,7 @@ Catch {
 }
 ###################### ZALADOWANIE KOMPONENTOW					
 Add-Type -AssemblyName System.Windows.Forms, PresentationCore, PresentationFramework
+Import-Module WebAdministration
 ###################### SPRAWDZANIE STRUKTURY KATALOGÓW & TWORZENIE ZMIENNYCH	
 $FilePath = $CMMSDirectory
 Write-Host "Attempting to load $FilePath"
@@ -53,10 +54,10 @@ $OldStructure = $FilePath + "\RRM3Services\"
 $CheckNewPath = Test-Path $NewStructure
 $CheckOldPath = Test-Path $OldStructure
 if ($CheckNewPath -eq $True) {
-    $RestFilePath = $FilePath + "\RestService\"
-    $ServiceFilePath = $FilePath + "\Service\"
-    $OldWebClientFilePath = $FilePath + "\WebClient\"
-	$NewWebClientFilepath = $FilePath + "\Web\"
+    $RestFilePath = $FilePath + "\RestService"
+    $ServiceFilePath = $FilePath + "\Service"
+    $OldWebClientFilePath = $FilePath + "\WebClient"
+	$NewWebClientFilepath = $FilePath + "\Web"
     $ClientFilePath = $FilePath + "\Client\"
     $Attachments = $FilePath + "\Attachments\"
 	$PanelFilePath = $FilePath + "\Panel\"
@@ -65,10 +66,10 @@ if ($CheckNewPath -eq $True) {
     $Mobile = $FilePath + "\Service\Temp\RRM3Mobile\RRM3Mobile.exe"
     $Apk = $FilePath + "\RestService\Android\CMMSMobile.apk"
     $TV = $FilePath + "\RestService\Tv\Tv.zip"
-    $RestConfig = $RestFilePath + "Web.config"
-    $ServiceConfig = $ServiceFilePath + "Web.config"
-    $OldWebClientConfig = $OldWebClientFilePath + "Web.config"
-	$NewWebClientConfig = $NewWebClientFilePath + "config\config.json"
+    $RestConfig = $RestFilePath + "\Web.config"
+    $ServiceConfig = $ServiceFilePath + "\Web.config"
+    $OldWebClientConfig = $OldWebClientFilePath + "\Web.config"
+	$NewWebClientConfig = $NewWebClientFilePath + "\config\config.json"
     $ClientConfig = $ClientFilePath + "RRM3.exe.config"
     $ExeFile = $ClientFilePath + "RRM3.exe"
 	$PanelConfig = $PanelFilePath + "CMMS.Panel.exe.config"
@@ -143,6 +144,31 @@ $DBPass = $DBPass.Replace(';', '')
 
 ###################### POBRANIE DANYCH Z IIS
 
+$Websites = Get-ChildItem IIS:\Sites
+foreach ($Site in $Websites) {
+	[string]$SiteVar = $Site.PhysicalPath
+	$RestIISCompare = $SiteVar -eq $RestFilePath
+	$ServiceIISCompare = $SiteVar -eq $ServiceFilePath
+	$WebIISCompare = $SiteVar -eq $WebFilePath
+	if ($RestIIsCompare -eq $True) {
+		$RestIISName = $Site.Name
+		Write-Host "Rest IIS name is: $RestIISName"
+		$RestIISPort = $Site.Bindings | Select-Object -ExpandProperty
+		Write-Host "Rest binding is: $RestIISPort"
+	}
+	if ($ServiceIISCompare -eq $True) {
+		$ServiceIISName = $Site.Name
+		Write-Host "Service IIS name is: $ServiceIISName"
+		$ServiceIISPort = $Site | select -ExpandProperty Bindings
+		Write-Host "Service bindings are: $ServiceIISPort"
+	}
+	if ($WebIISCompare -eq $True) {
+		$WebIISName = $Site.Name
+		Write-Host "Wwb IIS name is: $WebIISName"
+		$WebIISPort = $Site | select -ExpandProperty Bindings
+		Write-Host "Web binding is: $WebIISPort"
+	}
+}
 
 
 
@@ -884,7 +910,7 @@ $Form3Button3.Add_Click(
         $clearbinconfirmation = [System.Windows.Forms.MessageBox]::Show("This option, when performed badly,  might completely break CMMS`nand prevent further usage until fixed by maintenance staff.`nAre you sure you want to clear bin settings?", 'Warning', 'YesNo', 'Warning')
         if ($clearbinconfirmation -eq 'Yes') {
             $Form3Button3.Text = "Clearing..."
-            Invoke-Sqlcmd -ConnectionTimeout "100" -ServerInstance $Form1TextBox1.Text -Database $Form1TextBox2.Text -Username $Form1TextBox3.Text -Password $Form1TextBox4.Text -Query "DELETE FROM [dbo.UstawieniaBin]"
+            Invoke-Sqlcmd -ConnectionTimeout "100" -ServerInstance $Form1TextBox1.Text -Database $Form1TextBox2.Text -Username $Form1TextBox3.Text -Password $Form1TextBox4.Text -Query "DELETE FROM [dbo].[UstawieniaBin]"
             $Form3Button3.Text = "Clear BinSettings"
         }
         else {}
