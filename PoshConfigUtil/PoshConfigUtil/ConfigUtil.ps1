@@ -438,7 +438,7 @@ $Form2Label7.Location = New-Object System.Drawing.Point (20, 200)
 $Form2Label7.Size = New-Object System.Drawing.Size(500, 20)
 
 $Form3Label1 = New-Object System.Windows.Forms.Label
-$Form3Label1.Location = New-Object System.Drawing.Point (120, 10)
+$Form3Label1.Location = New-Object System.Drawing.Point (20, 10)
 $Form3Label1.Size = New-Object System.Drawing.Size(500, 20)
 
 $Form3Label2 = New-Object System.Windows.Forms.Label
