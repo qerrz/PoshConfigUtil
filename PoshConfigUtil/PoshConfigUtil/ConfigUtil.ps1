@@ -3,6 +3,9 @@
 [bool]$Elevateable = 1
 [bool]$BypassExecPolicy = 1
 [string]$CMMSDirectory = 'C:\Queris\CMMS'
+###################### ZALADOWANIE KOMPONENTOW					
+Add-Type -AssemblyName System.Windows.Forms, PresentationCore, PresentationFramework
+Import-Module WebAdministration
 ###################### HIDECONSOLE	
 if ($HideConsole -eq $True) {
 	Add-Type -Name Window -Namespace Console -MemberDefinition '[DllImport("Kernel32.dll")]public static extern IntPtr GetConsoleWindow();[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
@@ -43,9 +46,6 @@ Catch {
 	[System.Windows.MessageBox]::Show("ExecutionPolicy bypass failed. Script might not run properly", "Bypass failed!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)
 	Write-Host "ExecutionPolicy bypass is NOT active"
 }
-###################### ZALADOWANIE KOMPONENTOW					
-Add-Type -AssemblyName System.Windows.Forms, PresentationCore, PresentationFramework
-Import-Module WebAdministration
 ###################### SPRAWDZANIE STRUKTURY KATALOGÓW & TWORZENIE ZMIENNYCH	
 $FilePath = $CMMSDirectory
 Write-Host "Attempting to load $FilePath"
