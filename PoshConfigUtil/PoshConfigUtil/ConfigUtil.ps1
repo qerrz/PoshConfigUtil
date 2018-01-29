@@ -13,6 +13,14 @@ if ($HideConsole -eq $True) {
 	[Console.Window]::ShowWindow($consolePtr, 0)
 }
 else {
+	Write-Host "--- README ---"
+	Write-Host "- Settings of this script are found in the beginning of the code - just edit it via Notepad/ISE."
+	Write-Host "-`n- Current settings:"
+	Write-Host "- HideConsole = $HideConsole"
+	Write-Host "- Elevateable = $Elevateable"
+	Write-Host "- BypassExecPolicy = $BypassExecPolicy"
+	Write-Host "- Directory to load = $CMMSDirectory"
+	Write-Host "--- /README --- `n`n"
 	Write-Host "Console is enabled."
 }
 ###################### SELF-ELEVATION
@@ -84,7 +92,7 @@ if ($CheckNewPath -eq $True) {
 	else {
 		$WebFilePath = "Web not found on this instance"
 	} 
-	Write-Host "New structure loaded"
+	Write-Host "Loaded with new structure"
 }
 else {
     if ($CheckOldPath -eq $True) {
@@ -107,7 +115,7 @@ else {
         $ClientConfig = $ClientFilePath + "RRM3.exe.config"
         $ExeFile = $ClientFilePath + "RRM3.exe"
 		$PanelConfig = $PanelFilePath + "CMMS.Panel.exe.config"
-		Write-Host "Old structure loaded"
+		Write-Host "Loaded with old"
     }
     else {
         [System.Windows.MessageBox]::Show("Nie odnaleziono struktury katalogow CMMS. Upewnij sie, ze sciezka w pliku ConfigScriptGui.config jest prawidlowa!.", "System failure!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)
@@ -153,7 +161,17 @@ foreach ($Site in $Websites) {
 	if ($RestIIsCompare -eq $True) {
 		$RestIISName = $Site.Name
 		Write-Host "Rest IIS name is: $RestIISName"
-		$RestIISPort = $Site.Bindings | Select-Object -ExpandProperty
+		$RestIISBinding = Get-WebBinding -Name $RestIISName | Select-Object bindingInformation
+		$4DigitPort = [regex] '\d\d\d\d'
+		$5DigitPort = [regex] '\d\d\d\d\d'
+		$match1 = $4DigitPort.Match($RestIISBinding.bindingInformation)
+		$match2 = $5DigitPort.Match($RestIISBinding.bindingInformation)
+		if (!$match1) {
+			$RestIISPort = $match2
+		} 
+		else {
+			$RestIISPort = $match1
+		}
 		Write-Host "Rest binding is: $RestIISPort"
 	}
 	if ($ServiceIISCompare -eq $True) {
@@ -165,7 +183,15 @@ foreach ($Site in $Websites) {
 	if ($WebIISCompare -eq $True) {
 		$WebIISName = $Site.Name
 		Write-Host "Wwb IIS name is: $WebIISName"
-		$WebIISPort = $Site | select -ExpandProperty Bindings
+		$WebIISBinding = Get-WebBinding -Name $WebIISName | Select-Object bindingInformation
+		$match1 = $4DigitPort.Match($WebIISBinding.bindingInformation)
+		$match2 = $5DigitPort.Match($WebIISBinding.bindingInformation)
+		if (!$match1) {
+			$WebIISPort = $match2
+		} 
+		else {
+			$WebIISPort = $match1
+		}
 		Write-Host "Web binding is: $WebIISPort"
 	}
 }
@@ -345,7 +371,7 @@ $Form5TextBox9.ReadOnly = $true
 
 $Form5TextBox10 = New-Object System.Windows.Forms.TextBox
 $Form5TextBox10.BorderStyle = 2
-$Form5TextBox10.Text = "Port4"
+$Form5TextBox10.Text = "$RestIISPort"
 $Form5TextBox10.Location = New-Object System.Drawing.Point(470, 150)
 $Form5TextBox10.Size = New-Object System.Drawing.Size(60, 12)
 $Form5TextBox10.ReadOnly = $true
@@ -666,13 +692,6 @@ $Form1Button2.Add_Click(
             }
             $ErrorFlag = 1
         }
-		###################### ZAPIS - NOWY WEBCLIENT - CZEKA NA IIS ######################
-		#Try {
-		#	$FileToEdit5 = $NewWebClientConfig
-		#	[xml]$xml5 = Get-Content $FileToEdit5
-		#	$xml5.Load($FileToEdit5)
-		#	$node5 = $xml5.SelectSingleNode('')
-		#}
         ###################### ZAPIS - RESTSERVICE ######################
         Try {
             $FileToEdit2 = $RestConfig
@@ -715,6 +734,7 @@ $Form1Button2.Add_Click(
             }
             $ErrorFlag = 1
         }
+	
         ###################### ZAPIS - EXE.CONFIG ######################
         Try {
             $FileToEdit4 = $ClientConfig
@@ -746,7 +766,34 @@ $Form1Button2.Add_Click(
                 [System.Windows.MessageBox]::Show("Successfuly saved all config files.", "Great Success!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)
            
             }
-            
+		###################### ZAPIS - NOWY WEBCLIENT - CZEKA NA IIS ######################
+		#Try {
+		#	$FileToEdit5 = $NewWebClientConfig
+		#	[xml]$xml5 = Get-Content $FileToEdit5
+		#	$xml5.Load($FileToEdit5)
+		#	$node5 = $xml5.SelectSingleNode('')
+		#}
+		###################### ZAPIS - PANEL ######################
+        #Try {
+        #    $FileToEdit6 = $PanelConfig
+        #    [xml]$xml6 = Get-Content $FileToEdit6
+        #    $xml6.Load($FileToEdit6)
+        #    $node6 = $xml6.SelectSingleNode('/configuration/connectionStrings/add');
+        #    $node6.SetAttribute('connectionString', $connectionString)
+        #    $xml6.Save($FileToEdit3)
+        #    }
+        #Catch {
+        #    $ErrorMessage = $_.Exception.Message
+        #    if ($ErrorMessage -ilike "*null-valued*")
+        #    {
+        #       [string]$SaveWebClientMessage = "Saving Service config file - Path not found`n"
+        #    }
+        #    else
+        #    {
+        #        [string]$SaveServiceMessage = "Saving Service config file - Failed due to unknown reason`n"
+        #    }
+        #    $ErrorFlag = 1
+        #}  
     }
 )
 ###################### START RRM3										
