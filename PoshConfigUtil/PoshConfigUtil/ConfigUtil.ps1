@@ -151,7 +151,7 @@ $DBPass = $DBPass.Replace('=', '')
 $DBPass = $DBPass.Replace(';', '')
 
 ###################### POBRANIE DANYCH Z IIS
-
+$ServerManager = New-Object Microsoft.Web.Administration.ServerManager 
 $Websites = Get-ChildItem IIS:\Sites
 foreach ($Site in $Websites) {
 	[string]$SiteVar = $Site.PhysicalPath
