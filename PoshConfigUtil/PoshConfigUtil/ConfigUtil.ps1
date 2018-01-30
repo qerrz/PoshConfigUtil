@@ -3,7 +3,8 @@
 [bool]$Elevateable = 1
 [bool]$BypassExecPolicy = 1
 [string]$CMMSDirectory = 'C:\Queris\CMMS'
-###################### ZALADOWANIE KOMPONENTOW					
+###################### ZALADOWANIE KOMPONENTOW	
+Add-Type -Path C:\Windows\System32\inetsrv\Microsoft.Web.Administration.dll				
 Add-Type -AssemblyName System.Windows.Forms, PresentationCore, PresentationFramework
 Import-Module WebAdministration
 ###################### HIDECONSOLE	
@@ -152,52 +153,44 @@ $DBPass = $DBPass.Replace(';', '')
 
 ###################### POBRANIE DANYCH Z IIS
 $ServerManager = New-Object Microsoft.Web.Administration.ServerManager 
-$Websites = Get-ChildItem IIS:\Sites
-foreach ($Site in $Websites) {
-	[string]$SiteVar = $Site.PhysicalPath
-	$RestIISCompare = $SiteVar -eq $RestFilePath
-	$ServiceIISCompare = $SiteVar -eq $ServiceFilePath
-	$WebIISCompare = $SiteVar -eq $WebFilePath
-	if ($RestIIsCompare -eq $True) {
-		$RestIISName = $Site.Name
-		Write-Host "Rest IIS name is: $RestIISName"
-		$RestIISBinding = Get-WebBinding -Name $RestIISName | Select-Object bindingInformation
-		$4DigitPort = [regex] '\d\d\d\d'
-		$5DigitPort = [regex] '\d\d\d\d\d'
-		$match1 = $4DigitPort.Match($RestIISBinding.bindingInformation)
-		$match2 = $5DigitPort.Match($RestIISBinding.bindingInformation)
-		if (!$match1) {
-			$RestIISPort = $match2
-		} 
-		else {
-			$RestIISPort = $match1
-		}
-		Write-Host "Rest binding is: $RestIISPort"
-	}
-	if ($ServiceIISCompare -eq $True) {
-		$ServiceIISName = $Site.Name
-		Write-Host "Service IIS name is: $ServiceIISName"
-		$ServiceIISPort = $Site | select -ExpandProperty Bindings
-		Write-Host "Service bindings are: $ServiceIISPort"
-	}
-	if ($WebIISCompare -eq $True) {
-		$WebIISName = $Site.Name
-		Write-Host "Wwb IIS name is: $WebIISName"
-		$WebIISBinding = Get-WebBinding -Name $WebIISName | Select-Object bindingInformation
-		$match1 = $4DigitPort.Match($WebIISBinding.bindingInformation)
-		$match2 = $5DigitPort.Match($WebIISBinding.bindingInformation)
-		if (!$match1) {
-			$WebIISPort = $match2
-		} 
-		else {
-			$WebIISPort = $match1
-		}
-		Write-Host "Web binding is: $WebIISPort"
-	}
+$PortRegex = [regex] '\d+'
+foreach ($site in $ServerManager.Sites) {
+    if ($Site.Applications.VirtualDirectories.PhysicalPath -eq $ServiceFilePath) {
+        $ServiceIISName = $Site.Name
+        foreach ($binding in $Site.Bindings) {
+            if ($binding.Protocol -eq "net.tcp") {
+                [string]$ConvertedBinding = $binding.bindingInformation
+                $Result = $PortRegex.Match($ConvertedBinding)
+                $ServiceNetTcpPort = $Result
+                Write-Host "Service Net.TCP binding: $ServiceNetTcpPort"
+            }
+            else {
+                [string]$ConvertedBinding = $binding.bindingInformation
+                $Result = $PortRegex.Match($ConvertedBinding)
+                $ServiceHttpPort = $Result
+                Write-Host "Service HTTP binding: $ServiceHttpPort"
+            }
+        }
+    }
+    if ($Site.Applications.VirtualDirectories.PhysicalPath -eq $RestFilePath) {
+        $RestIISName = $Site.Name
+        foreach ($binding in $Site.Bindings) {
+            [string]$ConvertedBinding = $binding.bindingInformation
+            $Result = $PortRegex.Match($ConvertedBinding)
+            $RestPort = $Result
+            Write-Host "RestService Http binding: $RestPort"
+        }
+    }
+    if ($Site.Applications.VirtualDirectories.PhysicalPath -eq $WebFilePath) {
+        $WebIISName = $Site.Name
+        foreach ($Binding in $Site.Bindings) {
+            [string]$ConvertedBinding = $binding.bindingInformation
+            $Result = $PortRegex.match($ConvertedBinding)
+            $WebPort = $Result
+            Write-Host "Web Http binding: $WebPort"
+        } 
+    }
 }
-
-
-
 ###################### DEFINIOWANIE GUI									
 $Form1 = New-Object system.Windows.Forms.Form
 $Form1.Text = "Informacje o kliencie CMMS"
@@ -308,7 +301,7 @@ $Form4TextBox2.Size = New-Object System.Drawing.Size(200, 12)
 
 $Form5TextBox1 = New-Object System.Windows.Forms.TextBox
 $Form5TextBox1.BorderStyle = 2
-$Form5TextBox1.Text = "Strona - Serwis"
+$Form5TextBox1.Text = "$ServiceIISName"
 $Form5TextBox1.Location = New-Object System.Drawing.Point(50, 90)
 $Form5TextBox1.Size = New-Object System.Drawing.Size(200, 12)
 $Form5TextBox1.ReadOnly = $true
@@ -322,7 +315,7 @@ $Form5TextBox2.ReadOnly = $true
 
 $Form5TextBox3 = New-Object System.Windows.Forms.TextBox
 $Form5TextBox3.BorderStyle = 2
-$Form5TextBox3.Text = "Strona - Web"
+$Form5TextBox3.Text = "$WebIISName"
 $Form5TextBox3.Location = New-Object System.Drawing.Point(50, 120)
 $Form5TextBox3.Size = New-Object System.Drawing.Size(200, 12)
 $Form5TextBox3.ReadOnly = $true
@@ -336,7 +329,7 @@ $Form5TextBox4.ReadOnly = $true
 
 $Form5TextBox5 = New-Object System.Windows.Forms.TextBox
 $Form5TextBox5.BorderStyle = 2
-$Form5TextBox5.Text = "Strona - Rest"
+$Form5TextBox5.Text = "$RestIISName"
 $Form5TextBox5.Location = New-Object System.Drawing.Point(50, 150)
 $Form5TextBox5.Size = New-Object System.Drawing.Size(200, 12)
 $Form5TextBox5.ReadOnly = $true
@@ -350,28 +343,28 @@ $Form5TextBox6.ReadOnly = $true
 
 $Form5TextBox7 = New-Object System.Windows.Forms.TextBox
 $Form5TextBox7.BorderStyle = 2
-$Form5TextBox7.Text = "Port1"
+$Form5TextBox7.Text = "$ServiceHttpPort"
 $Form5TextBox7.Location = New-Object System.Drawing.Point(470, 90)
 $Form5TextBox7.Size = New-Object System.Drawing.Size(60, 12)
 $Form5TextBox7.ReadOnly = $true
 
 $Form5TextBox8 = New-Object System.Windows.Forms.TextBox
 $Form5TextBox8.BorderStyle = 2
-$Form5TextBox8.Text = "Port2"
+$Form5TextBox8.Text = "$ServiceNetTcpPort"
 $Form5TextBox8.Location = New-Object System.Drawing.Point(540, 90)
 $Form5TextBox8.Size = New-Object System.Drawing.Size(60, 12)
 $Form5TextBox8.ReadOnly = $true
 
 $Form5TextBox9 = New-Object System.Windows.Forms.TextBox
 $Form5TextBox9.BorderStyle = 2
-$Form5TextBox9.Text = "Port3"
+$Form5TextBox9.Text = "$WebPort"
 $Form5TextBox9.Location = New-Object System.Drawing.Point(470, 120)
 $Form5TextBox9.Size = New-Object System.Drawing.Size(60, 12)
 $Form5TextBox9.ReadOnly = $true
 
 $Form5TextBox10 = New-Object System.Windows.Forms.TextBox
 $Form5TextBox10.BorderStyle = 2
-$Form5TextBox10.Text = "$RestIISPort"
+$Form5TextBox10.Text = "$RestPort"
 $Form5TextBox10.Location = New-Object System.Drawing.Point(470, 150)
 $Form5TextBox10.Size = New-Object System.Drawing.Size(60, 12)
 $Form5TextBox10.ReadOnly = $true
@@ -866,7 +859,6 @@ $Form4Button1.Add_Click(
 			$node5 = $ClientXml.SelectNodes('/configuration/system.serviceModel/client/endpoint')
 			$node5.SetAttribute('address', $AddressToSave)
 			$ClientXml.Save($FileToEdit5)
-			$Endpoint = $ClientConfigContents.SelectSingleNode('/configuration/system.serviceModel/client/endpoint')
 			$Form4Label6.Text = $AddressToSave
 			$Counter = $($node5.Count)
 			[System.Windows.MessageBox]::Show("Successfully modified $Counter endpoints in RRM3.exe.config", "Succsss!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)	
