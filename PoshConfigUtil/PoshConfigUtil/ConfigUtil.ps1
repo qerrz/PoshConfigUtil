@@ -138,6 +138,7 @@ while ($match.Success) {
     $Results.Add($match.Value) | out-null
     $match = $match.NextMatch()
 }
+
 $DBAddress = $Results[2]
 $DBName = $Results[3]
 $DBLogin = $Results[5]
@@ -666,7 +667,7 @@ $Form1Button2.Add_Click(
         [bool]$ErrorFlag = 0
         ###################### ZAPIS - STARY WEBCLIENT ######################
         Try {
-            $FileToEdit = $WebClientConfig
+            $FileToEdit = $OldWebClientConfig
             [xml]$xml1 = Get-Content $FileToEdit
             $xml1.Load($FileToEdit)
             $node1 = $xml1.SelectSingleNode('/configuration/connectionStrings/add');
@@ -677,11 +678,11 @@ $Form1Button2.Add_Click(
             $ErrorMessage = $_.Exception.Message
             if ($ErrorMessage -ilike "*null-valued*")
             {
-                [string]$SaveWebClientMessage = "Saving WebClient config file - Path not found`n"
+                [string]$SaveOldWebClientMessage = "Saving WebClient config file - Path not found`n"
             }
             else
             {
-                [string]$SaveRestServiceMessage = "Saving WebClient config file - Failed due to unknown reason`n"
+                [string]$SaveOldWebClientMessage = "Saving WebClient config file - Failed due to unknown reason`n"
             }
             $ErrorFlag = 1
         }
@@ -698,7 +699,7 @@ $Form1Button2.Add_Click(
             $ErrorMessage = $_.Exception.Message
             if ($ErrorMessage -ilike "*null-valued*")
             {
-                [string]$SaveWebClientMessage = "Saving RestService config file - Path not found`n"
+                [string]$SaveRestServiceMessage = "Saving RestService config file - Path not found`n"
             }
             else
             {
@@ -719,7 +720,7 @@ $Form1Button2.Add_Click(
             $ErrorMessage = $_.Exception.Message
             if ($ErrorMessage -ilike "*null-valued*")
             {
-                [string]$SaveWebClientMessage = "Saving Service config file - Path not found`n"
+                [string]$SaveServiceMessage = "Saving Service config file - Path not found`n"
             }
             else
             {
@@ -727,7 +728,14 @@ $Form1Button2.Add_Click(
             }
             $ErrorFlag = 1
         }
-	
+        ##################### ZAPIS - NOWY WEBCLIENT ######################
+		Try {
+			'{'+"`n"+'  "service": {'+"`n"+'    "serverAddress":  "127.0.0.1",'+"`n"+'    "port": ' + "$RestPort" + ''+"`n"+'  }'+"`n"+'}' | Out-File $NewWebClientConfig 
+        }
+        Catch {
+            $ErrorFlag = 1
+            [string]$SaveNewWebMessage = "Saving Config.json - failed due to unknown reason`n"
+        }
         ###################### ZAPIS - EXE.CONFIG ######################
         Try {
             $FileToEdit4 = $ClientConfig
@@ -749,7 +757,7 @@ $Form1Button2.Add_Click(
             }
             $ErrorFlag = 1
         }
-            [string]$SaveErrorMessage = ($SaveWebClientMessage + $SaveRestServiceMessage + $SaveServiceMessage + $SaveExeMessage)
+            [string]$SaveErrorMessage = ($SaveOldWebClientMessage + $SaveRestServiceMessage + $SaveServiceMessage + $SaveExeMessage + $SaveNewWebMessage)
             if ($ErrorFlag -eq $True)
             {
                 [System.Windows.MessageBox]::Show("Saved files with errors:`n $SaveErrorMessage", "Almost Great Success!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)     
@@ -759,13 +767,6 @@ $Form1Button2.Add_Click(
                 [System.Windows.MessageBox]::Show("Successfuly saved all config files.", "Great Success!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)
            
             }
-		###################### ZAPIS - NOWY WEBCLIENT - CZEKA NA IIS ######################
-		#Try {
-		#	$FileToEdit5 = $NewWebClientConfig
-		#	[xml]$xml5 = Get-Content $FileToEdit5
-		#	$xml5.Load($FileToEdit5)
-		#	$node5 = $xml5.SelectSingleNode('')
-		#}
 		###################### ZAPIS - PANEL ######################
         #Try {
         #    $FileToEdit6 = $PanelConfig
