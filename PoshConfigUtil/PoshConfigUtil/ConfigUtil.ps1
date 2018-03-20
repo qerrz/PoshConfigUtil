@@ -9,51 +9,51 @@ Add-Type -AssemblyName System.Windows.Forms, PresentationCore, PresentationFrame
 Import-Module WebAdministration
 ###################### HIDECONSOLE	
 if ($HideConsole -eq $True) {
-	Add-Type -Name Window -Namespace Console -MemberDefinition '[DllImport("Kernel32.dll")]public static extern IntPtr GetConsoleWindow();[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
-	$consolePtr = [Console.Window]::GetConsoleWindow()
-	[Console.Window]::ShowWindow($consolePtr, 0)
+    Add-Type -Name Window -Namespace Console -MemberDefinition '[DllImport("Kernel32.dll")]public static extern IntPtr GetConsoleWindow();[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
+    $consolePtr = [Console.Window]::GetConsoleWindow()
+    [Console.Window]::ShowWindow($consolePtr, 0)
 }
 else {
-	Write-Host "--- README ---"
-	Write-Host "- Settings of this script are found in the beginning of the code - just edit it via Notepad/ISE."
-	Write-Host "-`n- Current settings:"
-	Write-Host "- HideConsole = $HideConsole"
-	Write-Host "- Elevateable = $Elevateable"
-	Write-Host "- BypassExecPolicy = $BypassExecPolicy"
-	Write-Host "- Directory to load = $CMMSDirectory"
-	Write-Host "--- /README --- `n`n"
-	Write-Host "Console is enabled."
+    Write-Host "--- README ---"
+    Write-Host "- Settings of this script are found in the beginning of the code - just edit it via Notepad/ISE."
+    Write-Host "-`n- Current settings:"
+    Write-Host "- HideConsole = $HideConsole"
+    Write-Host "- Elevateable = $Elevateable"
+    Write-Host "- BypassExecPolicy = $BypassExecPolicy"
+    Write-Host "- Directory to load = $CMMSDirectory"
+    Write-Host "--- /README --- `n`n"
+    Write-Host "Console is enabled."
 }
 ###################### SELF-ELEVATION
 Try {
-	if ($Elevateable -eq $True) {
-		Write-Host "Attempting to run script elevated..."
-		if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
-			if ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
-				$CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
-				Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
-				Exit
-			}
-		}
-	}
-	[bool]$Elevated = 1
-	Write-Host "Script is elevated"
+    if ($Elevateable -eq $True) {
+        Write-Host "Attempting to run script elevated..."
+        if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
+            if ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
+                $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
+                Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList $CommandLine
+                Exit
+            }
+        }
+    }
+    [bool]$Elevated = 1
+    Write-Host "Script is elevated"
 }
 Catch {
-	[System.Windows.MessageBox]::Show("Script runs in non-elevated mode. There might be issue with overwriting files and IIS is not accessible.", "Script not elevated!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)
-	Write-Host "Script is NOT elevated"
+    [System.Windows.MessageBox]::Show("Script runs in non-elevated mode. There might be issue with overwriting files and IIS is not accessible.", "Script not elevated!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)
+    Write-Host "Script is NOT elevated"
 }
 ###################### EXECUTION POLICY FORCE
 Try {
-	Write-Host "Attempting to bypass ExecutionPolicy..."
-	if ($Elevated -eq $True) {
-		Set-ExecutionPolicy Bypass -Force
-		Write-Host "ExecutionPolicy bypass is active"
-	}
+    Write-Host "Attempting to bypass ExecutionPolicy..."
+    if ($Elevated -eq $True) {
+        Set-ExecutionPolicy Bypass -Force
+        Write-Host "ExecutionPolicy bypass is active"
+    }
 }
 Catch {
-	[System.Windows.MessageBox]::Show("ExecutionPolicy bypass failed. Script might not run properly", "Bypass failed!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)
-	Write-Host "ExecutionPolicy bypass is NOT active"
+    [System.Windows.MessageBox]::Show("ExecutionPolicy bypass failed. Script might not run properly", "Bypass failed!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)
+    Write-Host "ExecutionPolicy bypass is NOT active"
 }
 ###################### SPRAWDZANIE STRUKTURY KATALOGÓW & TWORZENIE ZMIENNYCH	
 $FilePath = $CMMSDirectory
@@ -66,10 +66,10 @@ if ($CheckNewPath -eq $True) {
     $RestFilePath = $FilePath + "\RestService"
     $ServiceFilePath = $FilePath + "\Service"
     $OldWebClientFilePath = $FilePath + "\WebClient"
-	$NewWebClientFilepath = $FilePath + "\Web"
+    $NewWebClientFilepath = $FilePath + "\Web"
     $ClientFilePath = $FilePath + "\Client\"
     $Attachments = $FilePath + "\Attachments\"
-	$PanelFilePath = $FilePath + "\Panel\"
+    $PanelFilePath = $FilePath + "\Panel\"
     $Labels = $FilePath + "\Service\Labels"
     $Temp = $FilePath + "\Service\Temp"
     $Mobile = $FilePath + "\Service\Temp\RRM3Mobile\RRM3Mobile.exe"
@@ -78,32 +78,34 @@ if ($CheckNewPath -eq $True) {
     $RestConfig = $RestFilePath + "\Web.config"
     $ServiceConfig = $ServiceFilePath + "\Web.config"
     $OldWebClientConfig = $OldWebClientFilePath + "\Web.config"
-	$NewWebClientConfig = $NewWebClientFilePath + "\config\config.json"
+    $NewWebClientConfig = $NewWebClientFilePath + "\config\config.json"
     $ClientConfig = $ClientFilePath + "RRM3.exe.config"
     $ExeFile = $ClientFilePath + "RRM3.exe"
-	$PanelConfig = $PanelFilePath + "CMMS.Panel.exe.config"
-	$CheckOldWebPath = Test-Path $OldWebClientFilePath
-	$CheckNewWebPath = Test-Path $NewWebClientFilePath
-	if ($CheckNewWebPath -eq $True) {
-		$WebFilePath = $NewWebClientFilePath
-	}
-	elseif ($CheckOldWebPath -eq $True) {
-		$WebFilePath = $OldWebClientFilePath
-	}
-	else {
-		$WebFilePath = "Web not found on this instance"
-	} 
-	Write-Host "Loaded with new structure"
+    $PanelConfig = $PanelFilePath + "CMMS.Panel.exe.config"
+    $CheckOldWebPath = Test-Path $OldWebClientFilePath
+    $CheckNewWebPath = Test-Path $NewWebClientFilePath
+    if ($CheckNewWebPath -eq $True) {
+        $WebFilePath = $NewWebClientFilepath
+        [bool]$NewWebFlag = 1
+    }
+    elseif ($CheckOldWebPath -eq $True) {
+        $WebFilePath = $OldWebClientFilePath
+        [bool]$NewWebFlag = 0
+    }
+    else {
+        $WebFilePath = "Web not found on this instance"
+    } 
+    Write-Host "Loaded with new structure"
 }
 else {
     if ($CheckOldPath -eq $True) {
         $RestFilePath = $FilePath + "\RRM3RestService\"
         $ServiceFilePath = $FilePath + "\RRM3Services\"
         $OldWebClientFilePath = $FilePath + "\RRM3WebClient\"
-		$NewWebClientFilepath = $FilePath + "\Web\"
+        $NewWebClientFilepath = $FilePath + "\Web\"
         $ClientFilePath = $FilePath + "\RRM3Client\"
         $Attachments = $FilePath + "\Attachments\"
-		$PanelFilePath = $FilePath + "\Panel\"
+        $PanelFilePath = $FilePath + "\Panel\"
         $Labels = $FilePath + "\RRM3Services\Labels"
         $Temp = $FilePath + "\RRM3Services\Temp"
         $Mobile = $FilePath + "\RRM3Services\Temp\RRM3Mobile\RRM3Mobile.exe"
@@ -112,11 +114,22 @@ else {
         $RestConfig = $RestFilePath + "Web.config"
         $ServiceConfig = $ServiceFilePath + "Web.config"
         $OldWebClientConfig = $OldWebClientFilePath + "Web.config"
-		$NewWebClientConfig = $NewWebClientFilePath + "config\config.json"
+        $NewWebClientConfig = $NewWebClientFilePath + "config\config.json"
         $ClientConfig = $ClientFilePath + "RRM3.exe.config"
         $ExeFile = $ClientFilePath + "RRM3.exe"
-		$PanelConfig = $PanelFilePath + "CMMS.Panel.exe.config"
-		Write-Host "Loaded with old"
+        $PanelConfig = $PanelFilePath + "CMMS.Panel.exe.config"
+        if ($CheckNewWebPath -eq $True) {
+            $WebFilePath = $NewWebClientFilepath
+            [bool]$NewWebFlag = 1
+        }
+        elseif ($CheckOldWebPath -eq $True) {
+            $WebFilePath = $OldWebClientFilePath
+            [bool]$NewWebFlag = 0
+        }
+        else {
+            $WebFilePath = "Web not found on this instance"
+        } 
+        Write-Host "Loaded with old structure"
     }
     else {
         [System.Windows.MessageBox]::Show("Nie odnaleziono struktury katalogow CMMS. Upewnij sie, ze sciezka w pliku ConfigScriptGui.config jest prawidlowa!.", "System failure!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)
@@ -593,11 +606,11 @@ $Form1Button5.Size = New-Object System.Drawing.Size(100, 50)
 $Form1Button6 = New-Object System.Windows.Forms.Button
 $Form1Button6.Text = "IIS Operations"
 if ($Elevated -eq $True) {
-	$Form1Button6.Enabled = $True
-	}
-	else {
-		$Form1Button6.Enabled = $False
-	}
+    $Form1Button6.Enabled = $True
+}
+else {
+    $Form1Button6.Enabled = $False
+}
 $Form1Button6.Location = New-Object System.Drawing.Point(435, 75)
 $Form1Button6.Size = New-Object System.Drawing.Size(100, 50)
 
@@ -640,7 +653,7 @@ $Form3Button5.Enabled = $False
 $Form4Button1 = New-Object System.Windows.Forms.Button
 $Form4Button1.Text = "Save and set endpoints"
 $Form4Button1.Location = New-Object System.Drawing.Point (780, 210)
-$Form4Button1.Size = New-Object System.Drawing.Size(220,30)
+$Form4Button1.Size = New-Object System.Drawing.Size(220, 30)
 
 ###################### EDYCJA CONNECTIONSTRING							
 $Form1Button1.Add_Click(
@@ -670,26 +683,46 @@ $Form1Button2.Add_Click(
         $connectionString = 'metadata=res://*/RrmDBModel.csdl|res://*/RrmDBModel.ssdl|res://*/RrmDBModel.msl;provider=System.Data.SqlClient;provider connection string="data source=' + $Form1TextBox1.Text + ';initial catalog=' + $Form1TextBox2.Text + ';persist security info=True;user id=' + $Form1TextBox3.Text + ';password=' + $Form1TextBox4.Text + ';MultipleActiveResultSets=True;App=EntityFramework"'
         
         [bool]$ErrorFlag = 0
-        ###################### ZAPIS - STARY WEBCLIENT ######################
-        Try {
-            $FileToEdit = $OldWebClientConfig
-            [xml]$xml1 = Get-Content $FileToEdit
-            $xml1.Load($FileToEdit)
-            $node1 = $xml1.SelectSingleNode('/configuration/connectionStrings/add');
-            $node1.SetAttribute('connectionString', $connectionString)
-            $xml1.Save($FileToEdit)
+        [bool]$NewWebSaveSuccess = 0
+        [bool]$OldWebSaveSuccess = 0
+        [bool]$RestSaveSuccess = 0
+        [bool]$ServiceSaveSuccess = 0
+        [bool]$ExeSaveSuccess = 0
+        if ($NewWebFlag -eq $False) {
+            ###################### ZAPIS - STARY WEBCLIENT ######################
+            Try {
+                $FileToEdit = $OldWebClientConfig
+                [xml]$xml1 = Get-Content $FileToEdit
+                $xml1.Load($FileToEdit)
+                $node1 = $xml1.SelectSingleNode('/configuration/connectionStrings/add');
+                $node1.SetAttribute('connectionString', $connectionString)
+                $xml1.Save($FileToEdit)
+                $OldWebSaveSuccess = 1
             }
-        Catch {
-            $ErrorMessage = $_.Exception.Message
-            if ($ErrorMessage -ilike "*null-valued*")
-            {
-                [string]$SaveOldWebClientMessage = "Saving WebClient config file - Path not found`n"
+            Catch {
+                $ErrorMessage = $_.Exception.Message
+                if ($ErrorMessage -ilike "*null-valued*") {
+                    [string]$SaveOldWebClientMessage = "Saving WebClient config file - Path not found`n"
+                }
+                else {
+                    [string]$SaveOldWebClientMessage = "Saving WebClient config file - Failed due to unknown reason`n"
+                }
+                $ErrorFlag = 1
             }
-            else
-            {
-                [string]$SaveOldWebClientMessage = "Saving WebClient config file - Failed due to unknown reason`n"
+        }
+        elseif ($NewWebFlag -eq $True) {
+            ##################### ZAPIS - NOWY WEBCLIENT ######################
+            Try {
+                '{' + "`n" + '  "service": {' + "`n" + '    "serverAddress":  "127.0.0.1",' + "`n" + '    "port": ' + "$RestPort" + '' + "`n" + '  }' + "`n" + '}' | Out-File $NewWebClientConfig 
+                $NewWebSaveSuccess = 1
             }
-            $ErrorFlag = 1
+            Catch {
+                $ErrorFlag = 1
+                [string]$SaveNewWebMessage = "Saving Config.json - failed due to unknown reason`n"
+            }
+        }
+        else {
+
         }
         ###################### ZAPIS - RESTSERVICE ######################
         Try {
@@ -699,15 +732,14 @@ $Form1Button2.Add_Click(
             $node2 = $xml2.SelectSingleNode('/configuration/connectionStrings/add');
             $node2.SetAttribute('connectionString', $connectionString)
             $xml2.Save($FileToEdit2)
-            }
+            $RestSaveSuccess = 1
+        }
         Catch {
             $ErrorMessage = $_.Exception.Message
-            if ($ErrorMessage -ilike "*null-valued*")
-            {
+            if ($ErrorMessage -ilike "*null-valued*") {
                 [string]$SaveRestServiceMessage = "Saving RestService config file - Path not found`n"
             }
-            else
-            {
+            else {
                 [string]$SaveRestServiceMessage = "Saving RestService config file - Failed due to unknown reason`n"
             }
             $ErrorFlag = 1
@@ -720,27 +752,19 @@ $Form1Button2.Add_Click(
             $node3 = $xml3.SelectSingleNode('/configuration/connectionStrings/add');
             $node3.SetAttribute('connectionString', $connectionString)
             $xml3.Save($FileToEdit3)
-            }
+            $ServiceSaveSuccess = 1
+        }
         Catch {
             $ErrorMessage = $_.Exception.Message
-            if ($ErrorMessage -ilike "*null-valued*")
-            {
+            if ($ErrorMessage -ilike "*null-valued*") {
                 [string]$SaveServiceMessage = "Saving Service config file - Path not found`n"
             }
-            else
-            {
+            else {
                 [string]$SaveServiceMessage = "Saving Service config file - Failed due to unknown reason`n"
             }
             $ErrorFlag = 1
         }
-        ##################### ZAPIS - NOWY WEBCLIENT ######################
-		Try {
-			'{'+"`n"+'  "service": {'+"`n"+'    "serverAddress":  "127.0.0.1",'+"`n"+'    "port": ' + "$RestPort" + ''+"`n"+'  }'+"`n"+'}' | Out-File $NewWebClientConfig 
-        }
-        Catch {
-            $ErrorFlag = 1
-            [string]$SaveNewWebMessage = "Saving Config.json - failed due to unknown reason`n"
-        }
+    
         ###################### ZAPIS - EXE.CONFIG ######################
         Try {
             $FileToEdit4 = $ClientConfig
@@ -749,30 +773,42 @@ $Form1Button2.Add_Click(
             $node4 = $xml4.SelectSingleNode('/configuration/appSettings/add')
             $node4.SetAttribute('value', $Form1TextBox5.Text)
             $xml4.Save($FileToEdit4)
-            }
+            $ExeSaveSuccess = 1
+        }
         Catch {
             $ErrorMessage = $_.Exception.Message
-            if ($ErrorMessage -ilike "*null-valued*")
-            {
+            if ($ErrorMessage -ilike "*null-valued*") {
                 [string]$SaveWebClientMessage = "Saving WebClient config file - Path not found`n"
             }
-            else
-            {
+            else {
                 [string]$SaveExeMessage = "Saving Exe config file - Failed due to unknown reason`n"
             }
             $ErrorFlag = 1
         }
-            [string]$SaveErrorMessage = ($SaveOldWebClientMessage + $SaveRestServiceMessage + $SaveServiceMessage + $SaveExeMessage + $SaveNewWebMessage)
-            if ($ErrorFlag -eq $True)
-            {
-                [System.Windows.MessageBox]::Show("Saved files with errors:`n $SaveErrorMessage", "Almost Great Success!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)     
-            }
-            else
-            {
-                [System.Windows.MessageBox]::Show("Successfuly saved all config files.", "Great Success!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)
-           
-            }
-		###################### ZAPIS - PANEL ######################
+        $SuccessString = "List of saved files:`n" 
+        if ($ServiceSaveSuccess -eq $True) {
+            $SuccessString = $SuccessString + "Service Web Config `n"
+        } 
+        if ($RestSaveSuccess -eq $True) {
+            $SuccessString = $SuccessString + "RestService Web Config `n"
+        }
+        if ($NewWebSaveSuccess -eq $True) {
+            $SuccessString = $SuccessString + "Config.json `n"
+        }
+        if ($OldWebSaveSuccess -eq $True) {
+            $SuccessString = $SuccessString + "WebClient Web Config `n"
+        }
+        if ($ExeSaveSuccess -eq $True) {
+            $SuccessString = $SuccessString + "RRM3.exe Config"
+        }
+        [string]$SaveErrorMessage = "LIST OF UNSAVED FILES: `n$SaveOldWebClientMessage$SaveRestServiceMessage$SaveServiceMessage$SaveExeMessage$SaveNewWebMessage"
+        if ($ErrorFlag -eq $True) {
+            [System.Windows.MessageBox]::Show("SAVED FILES (WITH ERRORS): `n$SuccessString`n----------------------`n$SaveErrorMessage", "Almost Great Success!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)     
+        }
+        else {                
+            [System.Windows.MessageBox]::Show("$SuccessString", "Great Success!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information) 
+        }
+        ###################### ZAPIS - PANEL ######################
         #Try {
         #    $FileToEdit6 = $PanelConfig
         #    [xml]$xml6 = Get-Content $FileToEdit6
@@ -809,72 +845,69 @@ $Form1Label7.Add_Click(
 )
 ###################### FORMULARZ ENDPOINTY LOAD
 $Form1Button7.Add_Click(
-	{
+    {
         $Form4ListBox1.Items.Clear();
-		$IPAddresses = Get-NetIPAddress -AddressFamily IPv4
-		$Ip = @()
-		Foreach ($item in $IPAddresses.IPv4Address)
-		{
-			$Ip = $IPAddresses.IPv4Address
-		}
-		Foreach ($Address in $Ip)
-		{
-			$Form4ListBox1.Items.Add($Address)
-		}
-		$Endpoint = $ClientConfigContents.SelectSingleNode('/configuration/system.serviceModel/client/endpoint')
-		$Form4Label6.Text = $Endpoint.Address
-		#$Counter = $($Endpoint.Count)
-		$Form4.ShowDialog()
-	}
+        $IPAddresses = Get-NetIPAddress -AddressFamily IPv4
+        $Ip = @()
+        Foreach ($item in $IPAddresses.IPv4Address) {
+            $Ip = $IPAddresses.IPv4Address
+        }
+        Foreach ($Address in $Ip) {
+            $Form4ListBox1.Items.Add($Address)
+        }
+        $Endpoint = $ClientConfigContents.SelectSingleNode('/configuration/system.serviceModel/client/endpoint')
+        $Form4Label6.Text = $Endpoint.Address
+        #$Counter = $($Endpoint.Count)
+        $Form4.ShowDialog()
+    }
 )
 ###################### EVENTHANDLERY DLA LABELA Z NOWYM ENPOINT ADRESEM
 $Form4Listbox1.Add_Click(
-	{
-		$Form4Textbox1.Text = $Form4Listbox1.SelectedItem
-		$Form4Label4.Text = "net.tcp://" + $Form4Listbox1.SelectedItem + ":" + $Form4TextBox2.Text + "/RrmWcfServices.Services.AllServices.svc"
-	}
+    {
+        $Form4Textbox1.Text = $Form4Listbox1.SelectedItem
+        $Form4Label4.Text = "net.tcp://" + $Form4Listbox1.SelectedItem + ":" + $Form4TextBox2.Text + "/RrmWcfServices.Services.AllServices.svc"
+    }
 )
 $Form4ListBox1.Add_KeyUp(
-	{
-		$Form4Textbox2.Text = $Form4Listbox1.SelectedItem
-		$Form4Label4.Text = "net.tcp://" + $Form4Listbox1.SelectedItem + ":" + $Form4TextBox2.Text + "/RrmWcfServices.Services.AllServices.svc"
-	}
+    {
+        $Form4Textbox2.Text = $Form4Listbox1.SelectedItem
+        $Form4Label4.Text = "net.tcp://" + $Form4Listbox1.SelectedItem + ":" + $Form4TextBox2.Text + "/RrmWcfServices.Services.AllServices.svc"
+    }
 )
 $Form4TextBox2.Add_TextChanged(
-	{
-		$Form4Label4.Text = "net.tcp://" + $Form4TextBox1.Text + ":" + $Form4TextBox2.Text + "/RrmWcfServices.Services.AllServices.svc"
-	}
+    {
+        $Form4Label4.Text = "net.tcp://" + $Form4TextBox1.Text + ":" + $Form4TextBox2.Text + "/RrmWcfServices.Services.AllServices.svc"
+    }
 )
 $Form4TextBox1.Add_TextChanged(
-	{
-		$Form4Label4.Text = "net.tcp://" + $Form4TextBox1.Text + ":" + $Form4TextBox2.Text + "/RrmWcfServices.Services.AllServices.svc"
-	}
+    {
+        $Form4Label4.Text = "net.tcp://" + $Form4TextBox1.Text + ":" + $Form4TextBox2.Text + "/RrmWcfServices.Services.AllServices.svc"
+    }
 )
 $Form4TextBox1.Add_Click(
-	{
-		$Form4Label4.Text = "net.tcp://" + $Form4TextBox2.Text + ":" + $Form4TextBox1.Text + "/RrmWcfServices.Services.AllServices.svc"
-	}
+    {
+        $Form4Label4.Text = "net.tcp://" + $Form4TextBox2.Text + ":" + $Form4TextBox1.Text + "/RrmWcfServices.Services.AllServices.svc"
+    }
 )
 ###################### ZAPISANIE ENDPOINTÓW DO PLIKU
 $Form4Button1.Add_Click(
-	{
-		Try {
-			$AddressToSave = $Form4Label4.Text
-			$FileToEdit5 = $ClientConfig
-			[xml]$ClientXml = Get-Content $FileToEdit5
-			$ClientXml.Load($FileToEdit5)
-			$node5 = $ClientXml.SelectNodes('/configuration/system.serviceModel/client/endpoint')
-			$node5.SetAttribute('address', $AddressToSave)
-			$ClientXml.Save($FileToEdit5)
-			$Form4Label6.Text = $AddressToSave
-			$Counter = $($node5.Count)
-			[System.Windows.MessageBox]::Show("Successfully modified $Counter endpoints in RRM3.exe.config", "Succsss!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)	
-		}
-		Catch
-		{
-			[System.Windows.MessageBox]::Show("Failed to save RRM3.exe.config.", "Error!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)	
-		}
-	}
+    {
+        Try {
+            $AddressToSave = $Form4Label4.Text
+            $FileToEdit5 = $ClientConfig
+            [xml]$ClientXml = Get-Content $FileToEdit5
+            $ClientXml.Load($FileToEdit5)
+            $node5 = $ClientXml.SelectNodes('/configuration/system.serviceModel/client/endpoint')
+            $node5.SetAttribute('address', $AddressToSave)
+            $ClientXml.Save($FileToEdit5)
+            $Form4Label6.Text = $AddressToSave
+            $Counter = $($node5.Count)
+            [System.Windows.MessageBox]::Show("Successfully modified $Counter endpoints in RRM3.exe.config", "Succsss!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)	
+        }
+        Catch {
+            [System.Windows.MessageBox]::Show("Failed to save RRM3.exe.config.", "Error!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)	
+        }
+    }
 )
 
 ###################### ZALADOWANIE USTAWIENIA APLIKACJI					
@@ -1070,9 +1103,9 @@ $Form1Button5.Add_Click(
 )
 ###################### IIS_FORM_LOAD
 $Form1Button6.Add_Click(
-	{
-		$Form5.ShowDialog()
-	}
+    {
+        $Form5.ShowDialog()
+    }
 )
 ###################### INICJALIZACJA GUI 
 ######################  TextBoxy ###################### 
