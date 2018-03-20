@@ -144,8 +144,9 @@ $ClientVersion = $ClientVersion.Value
 ###################### ZALADOWANIE DANYCH DO EDITBOXOW				
 [xml]$ServiceConfigContents = Get-Content $ServiceConfig
 $ConnectionString = $ServiceConfigContents.configuration.connectionStrings.add.ConnectionString
+Write-Host "`nPobrany connection string z Service\Web.config`n$ConnectionString"
 $Results = new-object System.Collections.Specialized.StringCollection
-$regex = [regex] '=(\D.*?);'
+$regex = [regex] '=(\S.*?);'
 $match = $regex.Match($ConnectionString)
 while ($match.Success) {
     $Results.Add($match.Value) | out-null
