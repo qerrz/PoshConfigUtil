@@ -132,18 +132,22 @@ $ClientVersion = $ClientVersion.Value
 [xml]$ServiceConfigContents = Get-Content $ServiceConfig
 $ConnectionString = $ServiceConfigContents.configuration.connectionStrings.add.ConnectionString
 $Results = new-object System.Collections.Specialized.StringCollection
-$regex = [regex] '=(\w.*?);'
+$regex = [regex] '=(\D.*?);'
 $match = $regex.Match($ConnectionString)
 while ($match.Success) {
     $Results.Add($match.Value) | out-null
     $match = $match.NextMatch()
 }
-
+Write-Host "`nConnection string breakdown`nData collected:"
+foreach ($result in $Results) {
+    Write-Host "$Result"
+}
+Write-Host "`n"
 $DBAddress = $Results[2]
 $DBName = $Results[3]
 $DBLogin = $Results[5]
 $DBPass = $Results[6]
-$DBAddress = $DBAddress.Replace('=', '')
+$DBAddress = $DBAddress.Replace('="data source=', '')
 $DBAddress = $DBAddress.Replace(';', '')
 $DBName = $DBName.Replace('=', '')
 $DBName = $DBName.Replace(';', '')
@@ -292,13 +296,13 @@ $Form1TextBox5.Size = New-Object System.Drawing.Size(180, 12)
 
 $Form4TextBox1 = New-Object System.Windows.Forms.TextBox
 $Form4TextBox1.BorderStyle = 2
-$Form4TextBox1.Location = New-Object System.Drawing.Point(270, 60)
-$Form4TextBox1.Size = New-Object System.Drawing.Size(60, 12)
+$Form4TextBox1.Location = New-Object System.Drawing.Point(50, 60)
+$Form4TextBox1.Size = New-Object System.Drawing.Size(200, 12)
 
 $Form4TextBox2 = New-Object System.Windows.Forms.TextBox
 $Form4TextBox2.BorderStyle = 2
-$Form4TextBox2.Location = New-Object System.Drawing.Point(50, 60)
-$Form4TextBox2.Size = New-Object System.Drawing.Size(200, 12)
+$Form4TextBox2.Location = New-Object System.Drawing.Point(270, 60)
+$Form4TextBox2.Size = New-Object System.Drawing.Size(60, 12)
 
 $Form5TextBox1 = New-Object System.Windows.Forms.TextBox
 $Form5TextBox1.BorderStyle = 2
@@ -384,6 +388,7 @@ $Form3ListBox3.Location = New-Object System.Drawing.Point(1140, 40)
 
 $Form4ListBox1 = New-Object System.Windows.Forms.ListBox
 $Form4ListBox1.BorderStyle = 1
+$Form4ListBox1.TabStop = $False
 $Form4ListBox1.Location = New-Object System.Drawing.Point(50, 130)
 $Form4ListBox1.Size = New-Object System.Drawing.Size(180, 100)
 
@@ -805,6 +810,7 @@ $Form1Label7.Add_Click(
 ###################### FORMULARZ ENDPOINTY LOAD
 $Form1Button7.Add_Click(
 	{
+        $Form4ListBox1.Items.Clear();
 		$IPAddresses = Get-NetIPAddress -AddressFamily IPv4
 		$Ip = @()
 		Foreach ($item in $IPAddresses.IPv4Address)
@@ -824,27 +830,27 @@ $Form1Button7.Add_Click(
 ###################### EVENTHANDLERY DLA LABELA Z NOWYM ENPOINT ADRESEM
 $Form4Listbox1.Add_Click(
 	{
-		$Form4Textbox2.Text = $Form4Listbox1.SelectedItem
-		$Form4Label4.Text = "net.tcp://" + $Form4Listbox1.SelectedItem + ":" + $Form4TextBox1.Text + "/RrmWcfServices.Services.AllServices.svc"
+		$Form4Textbox1.Text = $Form4Listbox1.SelectedItem
+		$Form4Label4.Text = "net.tcp://" + $Form4Listbox1.SelectedItem + ":" + $Form4TextBox2.Text + "/RrmWcfServices.Services.AllServices.svc"
 	}
 )
 $Form4ListBox1.Add_KeyUp(
 	{
 		$Form4Textbox2.Text = $Form4Listbox1.SelectedItem
-		$Form4Label4.Text = "net.tcp://" + $Form4Listbox1.SelectedItem + ":" + $Form4TextBox1.Text + "/RrmWcfServices.Services.AllServices.svc"
-	}
-)
-$Form4TextBox1.Add_TextChanged(
-	{
-		$Form4Label4.Text = "net.tcp://" + $Form4TextBox2.Text + ":" + $Form4TextBox1.Text + "/RrmWcfServices.Services.AllServices.svc"
+		$Form4Label4.Text = "net.tcp://" + $Form4Listbox1.SelectedItem + ":" + $Form4TextBox2.Text + "/RrmWcfServices.Services.AllServices.svc"
 	}
 )
 $Form4TextBox2.Add_TextChanged(
 	{
-		$Form4Label4.Text = "net.tcp://" + $Form4TextBox2.Text + ":" + $Form4TextBox1.Text + "/RrmWcfServices.Services.AllServices.svc"
+		$Form4Label4.Text = "net.tcp://" + $Form4TextBox1.Text + ":" + $Form4TextBox2.Text + "/RrmWcfServices.Services.AllServices.svc"
 	}
 )
-$Form4TextBox2.Add_Click(
+$Form4TextBox1.Add_TextChanged(
+	{
+		$Form4Label4.Text = "net.tcp://" + $Form4TextBox1.Text + ":" + $Form4TextBox2.Text + "/RrmWcfServices.Services.AllServices.svc"
+	}
+)
+$Form4TextBox1.Add_Click(
 	{
 		$Form4Label4.Text = "net.tcp://" + $Form4TextBox2.Text + ":" + $Form4TextBox1.Text + "/RrmWcfServices.Services.AllServices.svc"
 	}
