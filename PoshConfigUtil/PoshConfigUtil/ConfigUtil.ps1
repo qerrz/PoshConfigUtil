@@ -44,16 +44,18 @@ Catch {
     Write-Host "Script is NOT elevated"
 }
 ###################### EXECUTION POLICY FORCE
-Try {
-    Write-Host "Attempting to bypass ExecutionPolicy..."
-    if ($Elevated -eq $True) {
-        Set-ExecutionPolicy Bypass -Force
-        Write-Host "ExecutionPolicy bypass is active"
+if ($BypassExecPolicy -eq $True) {
+    Try {
+        Write-Host "Attempting to bypass ExecutionPolicy..."
+        if ($Elevated -eq $True) {
+            Set-ExecutionPolicy Bypass -Force
+            Write-Host "ExecutionPolicy bypass is active"
+        }
     }
-}
-Catch {
-    [System.Windows.MessageBox]::Show("ExecutionPolicy bypass failed. Script might not run properly", "Bypass failed!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)
-    Write-Host "ExecutionPolicy bypass is NOT active"
+    Catch {
+        [System.Windows.MessageBox]::Show("ExecutionPolicy bypass failed. Script might not run properly", "Bypass failed!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)
+        Write-Host "ExecutionPolicy bypass is NOT active"
+    }
 }
 ###################### SPRAWDZANIE STRUKTURY KATALOGÓW & TWORZENIE ZMIENNYCH	
 $FilePath = $CMMSDirectory
@@ -145,7 +147,7 @@ $ClientVersion = $ClientVersion.Value
 [xml]$ServiceConfigContents = Get-Content $ServiceConfig
 $ConnectionString = $ServiceConfigContents.configuration.connectionStrings.add.ConnectionString
 Write-Host "`nPobrany connection string z Service\Web.config`n$ConnectionString"
-$Results = new-object System.Collections.Specialized.StringCollection
+$Results = new-object System.Collections.Specialized.StringCollection 
 $regex = [regex] '=(\S.*?);'
 $match = $regex.Match($ConnectionString)
 while ($match.Success) {
@@ -273,6 +275,18 @@ $Form5.SizeGripStyle = "Hide"
 $Form5.ShowInTaskbar = $False
 $Form5.Font = $Font
 
+$Form6 = New-Object System.Windows.Forms.Form
+$Form6.Text = "Backup"
+$Form6.Width = 600
+$Form6.Height = 360
+$Form6.MinimizeBox = $True
+$Form6.MaximizeBox = $False
+$Form6.WindowState = "Normal"
+$Form6.FormBorderStyle = "FixedSingle"
+$Form6.SizeGripStyle = "Hide"
+$Form6.ShowInTaskbar = $False
+$Form6.Font = $Font
+
 $Form1TextBox1 = New-Object System.Windows.Forms.TextBox
 $Form1TextBox1.ReadOnly = $true
 $Form1TextBox1.BorderStyle = 2
@@ -387,6 +401,18 @@ $Form5TextBox10.Text = "$RestPort"
 $Form5TextBox10.Location = New-Object System.Drawing.Point(470, 150)
 $Form5TextBox10.Size = New-Object System.Drawing.Size(60, 12)
 $Form5TextBox10.ReadOnly = $true
+
+$Form6TextBox1 = New-Object System.Windows.Forms.TextBox
+$Form6TextBox1.BorderStyle = 2
+$Form6TextBox1.Text = ""
+$Form6TextBox1.Location = New-Object System.Drawing.Point(60, 20)
+$Form6TextBox1.Size = New-Object System.Drawing.Size(400, 12)
+
+$Form6TextBox2 = New-Object System.Windows.Forms.TextBox
+$Form6TextBox2.BorderStyle = 2
+$Form6TextBox2.Text = ""
+$Form6TextBox2.Location = New-Object System.Drawing.Point(60, 60)
+$Form6TextBox2.Size = New-Object System.Drawing.Size(400, 12)
 
 $Form3ListBox1 = New-Object System.Windows.Forms.Listbox
 $Form3ListBox1.BorderStyle = 1
@@ -578,6 +604,16 @@ $Form5Label5.Location = New-Object System.Drawing.Point (540, 60)
 $Form5Label5.Size = New-Object System.Drawing.Size(70, 25)
 $Form5Label5.Text = "NET.TCP"
 
+$Form6Label1 = New-Object System.Windows.Forms.Label
+$Form6Label1.Location = New-Object System.Drawing.Point (10, 23)
+$Form6Label1.Size = New-Object System.Drawing.Size (55, 25)
+$Form6Label1.Text = "Dir" 
+
+$Form6Label2 = New-Object System.Windows.Forms.Label
+$Form6Label2.Location = New-Object System.Drawing.Point (10, 64)
+$Form6Label2.Size = New-Object System.Drawing.Size (55, 25)
+$Form6Label2.Text = "Name" 
+
 $Form1Button1 = New-Object System.Windows.Forms.Button
 $Form1Button1.Text = "Edit`nconn. data"
 $Form1Button1.Location = New-Object System.Drawing.Point(320, 20)
@@ -651,10 +687,40 @@ $Form3Button5.Location = New-Object System.Drawing.Point (125, 170)
 $Form3Button5.Size = New-Object System.Drawing.Size(100, 50)
 $Form3Button5.Enabled = $False
 
+$Form3Button6 = New-Object System.Windows.Forms.Button
+$Form3Button6.Text = "Backup`ndatabase"
+$Form3Button6.Location = New-Object System.Drawing.Point (20, 230)
+$Form3Button6.Size = New-Object System.Drawing.Size(100, 50)
+
 $Form4Button1 = New-Object System.Windows.Forms.Button
 $Form4Button1.Text = "Save and set endpoints"
 $Form4Button1.Location = New-Object System.Drawing.Point (780, 210)
 $Form4Button1.Size = New-Object System.Drawing.Size(220, 30)
+
+$Form6Button1 = New-Object System.Windows.Forms.Button
+$Form6Button1.Text = "Do it"
+$Form6Button1.Location = New-Object System.Drawing.Point (360, 270)
+$Form6Button1.Size = New-Object System.Drawing.Size(100, 30)
+
+$Form6Button2 = New-Object System.Windows.Forms.Button
+$Form6Button2.Text = "Don't do it"
+$Form6Button2.Location = New-Object System.Drawing.Point (470, 270)
+$Form6Button2.Size = New-Object System.Drawing.Size(100, 30)
+
+$Form6Button3 = New-Object System.Windows.Forms.Button
+$Form6Button3.Text = "Choose path"
+$Form6Button3.Location = New-Object System.Drawing.Point (470, 20)
+$Form6Button3.Size = New-Object System.Drawing.Size(100, 25)
+
+$Form6Button4 = New-Object System.Windows.Forms.Button
+$Form6Button4.Text = "Generate name"
+$Form6Button4.Location = New-Object System.Drawing.Point (470, 60)
+$Form6Button4.Size = New-Object System.Drawing.Size(100, 25)
+
+$FolderBrowser1 = New-Object System.Windows.Forms.FolderBrowserDialog -Property @{
+    SelectedPath = $FilePath
+}
+
 
 ###################### EDYCJA CONNECTIONSTRING							
 $Form1Button1.Add_Click(
@@ -848,6 +914,8 @@ $Form1Label7.Add_Click(
 $Form1Button7.Add_Click(
     {
         $Form4ListBox1.Items.Clear();
+        $Hostname = Hostname
+        $Form4ListBox1.Items.Add($Hostname)
         $IPAddresses = Get-NetIPAddress -AddressFamily IPv4
         $Ip = @()
         Foreach ($item in $IPAddresses.IPv4Address) {
@@ -1082,6 +1150,19 @@ $Form3Button5.Add_Click(
         $Form3Label10.Text = "Count: $LB3Counter"
     }
 )
+###################### BACKUP_FORM_OPEN
+$Form3Button6.Add_Click(
+    {
+        $Form6.ShowDialog()
+    }
+)
+######################
+$Form6Button3.Add_Click(
+    {
+    $FolderBrowser1.ShowDialog()
+    $Form6TextBox1.Text = $FolderBrowser1.SelectedPath
+    }
+)
 ###################### PATHLIST_FORM_OPEN
 $Form1Button3.Add_Click(
     {
@@ -1127,6 +1208,8 @@ $Form5.Controls.Add($Form5TextBox7)
 $Form5.Controls.Add($Form5TextBox8)
 $Form5.Controls.Add($Form5TextBox9)
 $Form5.Controls.Add($Form5TextBox10)
+$Form6.Controls.Add($Form6TextBox1)
+$Form6.Controls.Add($Form6TextBox2)
 ######################  ListBoxy ###################### 
 $Form3.Controls.Add($Form3ListBox1)
 $Form3.Controls.Add($Form3ListBox2)
@@ -1145,8 +1228,13 @@ $Form3.Controls.Add($Form3Button1)
 $Form3.Controls.Add($Form3Button2)
 $Form3.Controls.Add($Form3Button3)
 $Form3.Controls.Add($Form3Button4)
-$Form4.Controls.Add($Form4Button1)
 #$Form3.Controls.add($Form3Button5)   <---- Obsolete for now
+$Form3.Controls.Add($Form3Button6)
+$Form4.Controls.Add($Form4Button1)
+$Form6.Controls.Add($Form6Button1)
+$Form6.Controls.Add($Form6Button2)
+$Form6.Controls.Add($Form6Button3)
+$Form6.Controls.Add($Form6Button4)
 ######################  Labele ###################### 
 $Form1.Controls.Add($Form1Label1)
 $Form1.Controls.Add($Form1Label2)
@@ -1184,5 +1272,7 @@ $Form5.Controls.Add($Form5Label2)
 $Form5.Controls.Add($Form5Label3)
 $Form5.Controls.Add($Form5Label4)
 $Form5.Controls.Add($Form5Label5)
+$Form6.Controls.Add($Form6Label1)
+$Form6.Controls.Add($Form6Label2)
 $Form1.ShowDialog()
 
