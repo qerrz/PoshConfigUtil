@@ -1,12 +1,15 @@
 ﻿###################### USTAWIENIA SKRYPTU								
 [bool]$HideConsole = 0
-[bool]$Elevateable = 1
+[bool]$Elevateable = 0
 [bool]$BypassExecPolicy = 1
 [string]$CMMSDirectory = 'C:\Queris\CMMS'
 ###################### ZALADOWANIE KOMPONENTOW	
 Add-Type -Path C:\Windows\System32\inetsrv\Microsoft.Web.Administration.dll				
 Add-Type -AssemblyName System.Windows.Forms, PresentationCore, PresentationFramework
+if ($Elevateable -eq $true) {
 Import-Module WebAdministration
+}
+else {}
 ###################### HIDECONSOLE	
 if ($HideConsole -eq $True) {
     Add-Type -Name Window -Namespace Console -MemberDefinition '[DllImport("Kernel32.dll")]public static extern IntPtr GetConsoleWindow();[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
@@ -44,7 +47,7 @@ Catch {
     Write-Host "Script is NOT elevated"
 }
 ###################### EXECUTION POLICY FORCE
-if ($BypassExecPolicy -eq $True) {
+if ($BypassExecPolicy -eq $True -and $Elevateable -eq $true) {
     Try {
         Write-Host "Attempting to bypass ExecutionPolicy..."
         if ($Elevated -eq $True) {
@@ -138,7 +141,89 @@ else {
         return
     }
 }
-
+###################### DEKLARACJA DOMYŚLNYCH PORTÓW IIS
+$ServiceHttpPort = "8001"
+$ServiceNetTcpPort = "8010"
+$RestPort = "8030"
+$WebPort = "8020"
+###################### SPRAWDZANIE ŚCIEŻEK
+$ServiceConfigTest = Test-Path $ServiceConfig
+$NewWebClientConfigTest = Test-Path $NewWebClientConfig
+$OldWebClientConfigTest = Test-Path $OldWebClientConfig
+$PanelConfigTest = Test-Path $PanelConfig
+$RestConfigTest = Test-Path $RestConfig
+$ServiceFilePathTest = Test-Path $ServiceFilePath
+$RestFilePathTest = Test-Path $RestFilePath
+$NewWebClientFilepathTest = Test-Path $NewWebClientFilepath
+$OldWebClientFilePathTest = Test-Path $OldWebClientFilePath
+$PanelFilePathTest = Test-Path $PanelFilePath
+###################### WYPISANIE ZAŁADOWANYCH PLIKÓW
+Write-Host "Loaded paths"
+Write-Host "SERVICE:"
+if ($ServiceFilePathTest -eq $True) {
+    Write-Host $ServiceFilePath
+}
+else {
+    Write-Host "Service files not found"
+}
+if ($ServiceConfigTest -eq $True) {
+Write-Host $ServiceConfig
+}
+else {
+    Write-Host "Service Config not found"
+}
+Write-Host "RESTSERVICE:"
+if ($RestFilePathTest -eq $True) {
+    Write-Host $RestFilePath
+}
+else {
+    Write-Host "RestService files not found"
+}
+if ($RestConfigTest -eq $True) {
+    Write-Host $RestConfig
+}
+else {
+    Write-Host "RestService Config not found"
+}
+Write-Host "NEW WEB:"
+if ($NewWebClientFilepathTest -eq $True) {
+    Write-Host $NewWebClientConfig
+}
+else {
+    Write-Host "New Web files not found"
+}
+if ($NewWebClientConfigTest -eq $True) {
+    Write-Host $NewWebClientConfig
+}
+else {
+    Write-Host "New Web Config not found"
+}
+Write-Host "OLD WEB:"
+if ($OldWebClientFilePathTest -eq $True) {
+    Write-Host $OldWebClientFilePath
+}
+else {
+    Write-Host "Old Web files not found"
+}
+if ($OldWebClientConfigTest -eq $True) {
+    Write-Host $OldWebClientConfig
+}
+else {
+    Write-Host "Old Web config not found"
+}
+Write-Host "PANEL:"
+if ($PanelFilePathTest -eq $True) {
+    Write-Host $PanelFilePath
+}
+else {
+    Write-Host "Panel files not found"
+}
+if ($PanelConfigTest -eq $True) {
+    Write-Host $PanelConfig
+}
+else {
+    Write-Host "Panel Config not found"
+}
 ###################### POBRANIE WERSJI Z RRM3.EXE					
 [xml]$ClientConfigContents = Get-Content $ClientConfig
 $ClientVersion = $ClientConfigContents.SelectSingleNode('/configuration/appSettings/add')
@@ -173,44 +258,64 @@ $DBPass = $DBPass.Replace('=', '')
 $DBPass = $DBPass.Replace(';', '')
 
 ###################### POBRANIE DANYCH Z IIS
-$ServerManager = New-Object Microsoft.Web.Administration.ServerManager 
-$PortRegex = [regex] '\d+'
-foreach ($site in $ServerManager.Sites) {
-    if ($Site.Applications.VirtualDirectories.PhysicalPath -eq $ServiceFilePath) {
-        $ServiceIISName = $Site.Name
-        foreach ($binding in $Site.Bindings) {
-            if ($binding.Protocol -eq "net.tcp") {
-                [string]$ConvertedBinding = $binding.bindingInformation
-                $Result = $PortRegex.Match($ConvertedBinding)
-                $ServiceNetTcpPort = $Result
-                Write-Host "Service Net.TCP binding: $ServiceNetTcpPort"
-            }
-            else {
-                [string]$ConvertedBinding = $binding.bindingInformation
-                $Result = $PortRegex.Match($ConvertedBinding)
-                $ServiceHttpPort = $Result
-                Write-Host "Service HTTP binding: $ServiceHttpPort"
+try {
+    $ServerManager = New-Object Microsoft.Web.Administration.ServerManager 
+    $PortRegex = [regex] '\d+'
+    foreach ($site in $ServerManager.Sites) {
+        try {
+            if ($Site.Applications.VirtualDirectories.PhysicalPath -eq $ServiceFilePath) {
+                $ServiceIISName = $Site.Name
+                foreach ($binding in $Site.Bindings) {
+                    if ($binding.Protocol -eq "net.tcp") {
+                        [string]$ConvertedBinding = $binding.bindingInformation
+                        $Result = $PortRegex.Match($ConvertedBinding)
+                        $ServiceNetTcpPort = $Result
+                        Write-Host "Service Net.TCP binding: $ServiceNetTcpPort"
+                    }
+                    else {
+                        [string]$ConvertedBinding = $binding.bindingInformation
+                        $Result = $PortRegex.Match($ConvertedBinding)
+                        $ServiceHttpPort = $Result
+                        Write-Host "Service HTTP binding: $ServiceHttpPort"
+                    }
+                }
+            }   
+        }
+        catch {
+            Write-Host "Failed to obtain Service bindings. Script will use default values: Http:8001, Net.tcp:8010"
+        }
+        try {
+            if ($Site.Applications.VirtualDirectories.PhysicalPath -eq $RestFilePath) {
+                $RestIISName = $Site.Name
+                foreach ($binding in $Site.Bindings) {
+                    [string]$ConvertedBinding = $binding.bindingInformation
+                    $Result = $PortRegex.Match($ConvertedBinding)
+                    $RestPort = $Result
+                    Write-Host "RestService Http binding: $RestPort"
+                }
             }
         }
-    }
-    if ($Site.Applications.VirtualDirectories.PhysicalPath -eq $RestFilePath) {
-        $RestIISName = $Site.Name
-        foreach ($binding in $Site.Bindings) {
-            [string]$ConvertedBinding = $binding.bindingInformation
-            $Result = $PortRegex.Match($ConvertedBinding)
-            $RestPort = $Result
-            Write-Host "RestService Http binding: $RestPort"
+        catch {
+            Write-Host "Failed to obtain Rest Service binding. Script will use default value: Http:8030"
+        }
+        try {
+            if ($Site.Applications.VirtualDirectories.PhysicalPath -eq $WebFilePath) {
+                $WebIISName = $Site.Name
+                foreach ($Binding in $Site.Bindings) {
+                    [string]$ConvertedBinding = $binding.bindingInformation
+                    $Result = $PortRegex.match($ConvertedBinding)
+                    $WebPort = $Result
+                    Write-Host "Web Http binding: $WebPort"
+                } 
+            }
+        }
+        catch {
+            Write-Host "Failed to obtain Web binding. Script will use default value: Http:8020"
         }
     }
-    if ($Site.Applications.VirtualDirectories.PhysicalPath -eq $WebFilePath) {
-        $WebIISName = $Site.Name
-        foreach ($Binding in $Site.Bindings) {
-            [string]$ConvertedBinding = $binding.bindingInformation
-            $Result = $PortRegex.match($ConvertedBinding)
-            $WebPort = $Result
-            Write-Host "Web Http binding: $WebPort"
-        } 
-    }
+}
+catch {
+    Write-Host "IIS data load failed. Script will use default values for bindings."
 }
 ###################### DEFINIOWANIE GUI									
 $Form1 = New-Object system.Windows.Forms.Form
@@ -845,13 +950,39 @@ $Form1Button2.Add_Click(
         Catch {
             $ErrorMessage = $_.Exception.Message
             if ($ErrorMessage -ilike "*null-valued*") {
-                [string]$SaveWebClientMessage = "Saving WebClient config file - Path not found`n"
+                [string]$SaveExeMessage = "Saving Exe config file - Path not found`n"
             }
             else {
                 [string]$SaveExeMessage = "Saving Exe config file - Failed due to unknown reason`n"
             }
             $ErrorFlag = 1
         }
+            try {
+            $FileToEdit6 = $PanelConfig
+            Write-Host "loaded file $FileToEdit6"
+            [xml]$xml6 = Get-Content $FileToEdit6
+            $xml6.Load($FileToEdit6)
+            #XmlNamespaceManager PanelNamespaceManager = new XmlNamespaceManager($xml6.NameTable)
+            $node6 = $xml6.SelectSingleNode("/configuration/applicationSettings/CMMS.Panel.Properties.Settings/setting[@name=ServiceAddress]/value");
+            $Hostname = Hostname
+            $node6.InnerText("$Hostname")
+            $node6_2 = $xml6.SelectSingleNode("/configuration/applicationSettings/CMMS.Panel.Properties.Settings/setting[@name=ServiceAddress]/value")
+            $node6_2.InnerText("$RestPort")
+            $xml6.Save($FileToEdit6)
+            $PanelSaveSuccess = 1
+            }
+        Catch {
+            $ErrorMessage = $_.Exception.Message
+            if ($ErrorMessage -ilike "*null-valued*")
+            {
+                [string]$SavePanelMessage = "Saving Panel config file - Path not found`n"
+            }
+            else
+            {
+                [string]$SavePanelMessage = "Saving Panel config file - Failed due to unknown reason`n"
+            }
+            $ErrorFlag = 1
+        }  
         $SuccessString = "List of saved files:`n" 
         if ($ServiceSaveSuccess -eq $True) {
             $SuccessString = $SuccessString + "Service Web Config `n"
@@ -868,7 +999,10 @@ $Form1Button2.Add_Click(
         if ($ExeSaveSuccess -eq $True) {
             $SuccessString = $SuccessString + "RRM3.exe Config"
         }
-        [string]$SaveErrorMessage = "LIST OF UNSAVED FILES: `n$SaveOldWebClientMessage$SaveRestServiceMessage$SaveServiceMessage$SaveExeMessage$SaveNewWebMessage"
+        if ($PanelSaveSuccess -eq $true) {
+            $SuccessString = $SuccessString + "Panel Config `n"
+        }
+        [string]$SaveErrorMessage = "LIST OF UNSAVED FILES: `n$SaveOldWebClientMessage$SaveRestServiceMessage$SaveServiceMessage$SaveExeMessage$SaveNewWebMessage$SavePanelMessage"
         if ($ErrorFlag -eq $True) {
             [System.Windows.MessageBox]::Show("SAVED FILES (WITH ERRORS): `n$SuccessString`n----------------------`n$SaveErrorMessage", "Almost Great Success!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)     
         }
@@ -876,26 +1010,7 @@ $Form1Button2.Add_Click(
             [System.Windows.MessageBox]::Show("$SuccessString", "Great Success!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information) 
         }
         ###################### ZAPIS - PANEL ######################
-        #Try {
-        #    $FileToEdit6 = $PanelConfig
-        #    [xml]$xml6 = Get-Content $FileToEdit6
-        #    $xml6.Load($FileToEdit6)
-        #    $node6 = $xml6.SelectSingleNode('/configuration/connectionStrings/add');
-        #    $node6.SetAttribute('connectionString', $connectionString)
-        #    $xml6.Save($FileToEdit3)
-        #    }
-        #Catch {
-        #    $ErrorMessage = $_.Exception.Message
-        #    if ($ErrorMessage -ilike "*null-valued*")
-        #    {
-        #       [string]$SaveWebClientMessage = "Saving Service config file - Path not found`n"
-        #    }
-        #    else
-        #    {
-        #        [string]$SaveServiceMessage = "Saving Service config file - Failed due to unknown reason`n"
-        #    }
-        #    $ErrorFlag = 1
-        #}  
+        
     }
 )
 ###################### START RRM3										
