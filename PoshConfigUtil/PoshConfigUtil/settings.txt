@@ -7,7 +7,7 @@ BypassExecPolicy=0
 Directory=C:\Queris\CMMS
 
 [Ports]
-ServiceHTTP=8001
+ServiceHTTP=8002
 ServiceNETTCP=8010
 Web=8020
 RestService=8030
