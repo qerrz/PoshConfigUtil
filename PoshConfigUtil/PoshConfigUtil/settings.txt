@@ -1,10 +1,10 @@
 [General]
 HideConsole=0
-Elevateable=0
+Elevateable=1
 BypassExecPolicy=0
 
 [Directories]
-Directory=C:\Queris\CMMS
+Directory=C:\Queris\CMMS\
 
 [Ports]
 ServiceHTTP=8002

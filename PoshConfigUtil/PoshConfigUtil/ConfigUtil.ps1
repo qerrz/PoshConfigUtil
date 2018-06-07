@@ -14,7 +14,8 @@ Get-Content $SettingsPath | foreach-object -begin {$Settings = @{}} -process { $
 $HideConsole = $Settings.HideConsole
 $Elevateable = $Settings.Elevateable
 $BypassExecPolicy = $Settings.BypassExecPolicy
-$CMMSDirectory = $Settings.Directory
+[string]$CMMSDirectory = $Settings.Directory
+$CMMSDirectory = $CMMSDirectory -replace '\\$', ''
 ###################### ZALADOWANIE KOMPONENTOW	
 Add-Type -Path C:\Windows\System32\inetsrv\Microsoft.Web.Administration.dll				
 Add-Type -AssemblyName System.Windows.Forms, PresentationCore, PresentationFramework
