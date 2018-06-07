@@ -1,0 +1,7 @@
+[General]
+HideConsole=1
+Elevateable=0
+BypassExecPolicy=0
+
+[Directories]
+Directory=C:\Queris\CMMS

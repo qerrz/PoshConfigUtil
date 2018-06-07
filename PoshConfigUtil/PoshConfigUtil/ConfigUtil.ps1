@@ -1,17 +1,30 @@
-﻿###################### USTAWIENIA SKRYPTU								
-[bool]$HideConsole = 0
-[bool]$Elevateable = 0
-[bool]$BypassExecPolicy = 1
-[string]$CMMSDirectory = 'C:\Queris\CMMS'
+﻿###################### ZAŁADOWANIE USTAWIEŃ
+$ScriptPath = Split-Path $MyInvocation.MyCommand.Path -Parent
+$SettingsPath = $ScriptPath + "\settings.txt"
+$SettingsTest = Test-Path $SettingsPath
+if ($SettingsTest -eq $True) {
+    Write-Host "Settings.txt loaded"
+}
+else {
+    Write-Host "Critical error: Settings.txt not found in script path"
+    return
+}
+Get-Content $SettingsPath | foreach-object -begin {$Settings=@{}} -process { $k = [regex]::split($_,'='); if(($k[0].CompareTo("") -ne 0) -and ($k[0].StartsWith("[") -ne $True)) { $Settings.Add($k[0], $k[1]) } }
+###################### USTAWIENIA SKRYPTU (POBRANE Z SETTINGS.TXT)
+$HideConsole = $Settings.HideConsole
+$Elevateable = $Settings.Elevateable
+$BypassExecPolicy = $Settings.BypassExecPolicy
+$CMMSDirectory = $Settings.Directory
 ###################### ZALADOWANIE KOMPONENTOW	
 Add-Type -Path C:\Windows\System32\inetsrv\Microsoft.Web.Administration.dll				
 Add-Type -AssemblyName System.Windows.Forms, PresentationCore, PresentationFramework
-if ($Elevateable -eq $true) {
+if ($Elevateable -eq 1) {
 Import-Module WebAdministration
 }
 else {}
 ###################### HIDECONSOLE	
-if ($HideConsole -eq $True) {
+if ($HideConsole -eq 1) {
+    Write-Host "Turning invisible"
     Add-Type -Name Window -Namespace Console -MemberDefinition '[DllImport("Kernel32.dll")]public static extern IntPtr GetConsoleWindow();[DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);'
     $consolePtr = [Console.Window]::GetConsoleWindow()
     [Console.Window]::ShowWindow($consolePtr, 0)
@@ -29,7 +42,7 @@ else {
 }
 ###################### SELF-ELEVATION
 Try {
-    if ($Elevateable -eq $True) {
+    if ($Elevateable -eq 1) {
         Write-Host "Attempting to run script elevated..."
         if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
             if ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
@@ -47,10 +60,10 @@ Catch {
     Write-Host "Script is NOT elevated"
 }
 ###################### EXECUTION POLICY FORCE
-if ($BypassExecPolicy -eq $True -and $Elevateable -eq $true) {
+if ($BypassExecPolicy -eq 1 -and $Elevateable -eq 1) {
     Try {
         Write-Host "Attempting to bypass ExecutionPolicy..."
-        if ($Elevated -eq $True) {
+        if ($Elevated -eq 1) {
             Set-ExecutionPolicy Bypass -Force
             Write-Host "ExecutionPolicy bypass is active"
         }
@@ -1390,4 +1403,3 @@ $Form5.Controls.Add($Form5Label5)
 $Form6.Controls.Add($Form6Label1)
 $Form6.Controls.Add($Form6Label2)
 $Form1.ShowDialog()
-
