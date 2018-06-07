@@ -31,7 +31,7 @@ if ($HideConsole -eq 1) {
 }
 else {
     Write-Host "--- README ---"
-    Write-Host "- Settings of this script are found in the beginning of the code - just edit it via Notepad/ISE."
+    Write-Host "- Settings of this script are available in settings.txt"
     Write-Host "-`n- Current settings:"
     Write-Host "- HideConsole = $HideConsole"
     Write-Host "- Elevateable = $Elevateable"
@@ -873,6 +873,7 @@ $Form1Button2.Add_Click(
         [bool]$RestSaveSuccess = 0
         [bool]$ServiceSaveSuccess = 0
         [bool]$ExeSaveSuccess = 0
+        [bool]$PanelSaveSuccess = 0
         if ($NewWebFlag -eq $False) {
             ###################### ZAPIS - STARY WEBCLIENT ######################
             Try {
@@ -949,7 +950,6 @@ $Form1Button2.Add_Click(
             }
             $ErrorFlag = 1
         }
-    
         ###################### ZAPIS - EXE.CONFIG ######################
         Try {
             $FileToEdit4 = $ClientConfig
@@ -970,17 +970,17 @@ $Form1Button2.Add_Click(
             }
             $ErrorFlag = 1
         }
-            try {
+        ###################### ZAPIS - PANEL ######################
+        Try {
             $FileToEdit6 = $PanelConfig
-            Write-Host "loaded file $FileToEdit6"
             [xml]$xml6 = Get-Content $FileToEdit6
             $xml6.Load($FileToEdit6)
             #XmlNamespaceManager PanelNamespaceManager = new XmlNamespaceManager($xml6.NameTable)
-            $node6 = $xml6.SelectSingleNode("/configuration/applicationSettings/CMMS.Panel.Properties.Settings/setting[@name=ServiceAddress]/value");
+            $node6 = $xml6.SelectSingleNode('/configuration/applicationSettings/CMMS.Panel.Properties.Settings/setting[@name="ServiceAddress"]/value');
             $Hostname = Hostname
-            $node6.InnerText("$Hostname")
-            $node6_2 = $xml6.SelectSingleNode("/configuration/applicationSettings/CMMS.Panel.Properties.Settings/setting[@name=ServiceAddress]/value")
-            $node6_2.InnerText("$RestPort")
+            $node6.InnerText = $Hostname
+            $node6_2 = $xml6.SelectSingleNode('/configuration/applicationSettings/CMMS.Panel.Properties.Settings/setting[@name="ServicePort"]/value')
+            $node6_2.InnerText = $RestPort
             $xml6.Save($FileToEdit6)
             $PanelSaveSuccess = 1
             }
@@ -1010,7 +1010,7 @@ $Form1Button2.Add_Click(
             $SuccessString = $SuccessString + "WebClient Web Config `n"
         }
         if ($ExeSaveSuccess -eq $True) {
-            $SuccessString = $SuccessString + "RRM3.exe Config"
+            $SuccessString = $SuccessString + "RRM3.exe Config `n"
         }
         if ($PanelSaveSuccess -eq $true) {
             $SuccessString = $SuccessString + "Panel Config `n"
@@ -1021,9 +1021,7 @@ $Form1Button2.Add_Click(
         }
         else {                
             [System.Windows.MessageBox]::Show("$SuccessString", "Great Success!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information) 
-        }
-        ###################### ZAPIS - PANEL ######################
-        
+        }  
     }
 )
 ###################### START RRM3										
@@ -1099,7 +1097,9 @@ $Form4Button1.Add_Click(
             $ClientXml.Save($FileToEdit5)
             $Form4Label6.Text = $AddressToSave
             $Counter = $($node5.Count)
-            [System.Windows.MessageBox]::Show("Successfully modified $Counter endpoints in RRM3.exe.config", "Succsss!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)	
+            [System.Windows.MessageBox]::Show("Successfully modified $Counter endpoints in RRM3.exe.config", "Succsss!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Information)
+            $Form4TextBox1.Text = ""
+            $Form4TextBox2.Text = ""
         }
         Catch {
             [System.Windows.MessageBox]::Show("Failed to save RRM3.exe.config.", "Error!", [System.Windows.MessageBoxButton]::Ok, [System.Windows.MessageBoxImage]::Error)	

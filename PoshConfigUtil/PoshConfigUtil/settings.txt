@@ -1,6 +1,6 @@
 [General]
-HideConsole=1
-Elevateable=0
+HideConsole=0
+Elevateable=1
 BypassExecPolicy=0
 
 [Directories]
