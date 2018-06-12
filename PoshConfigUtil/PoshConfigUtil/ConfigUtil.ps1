@@ -160,8 +160,8 @@ else {
 ###################### POBRANIE DOMYŚLNYCH PORTÓW Z SETTINGS.TXT
 $ServiceHttpPort = $Settings.ServiceHTTP
 $ServiceNetTcpPort = $Settings.ServiceNETTCP
-$RestPort = $Settings.Web
-$WebPort = $Settings.RestService
+$RestPort = $Settings.RestService
+$WebPort = $Settings.Web
 ###################### SPRAWDZANIE ŚCIEŻEK
 $ServiceConfigTest = Test-Path $ServiceConfig
 $NewWebClientConfigTest = Test-Path $NewWebClientConfig
@@ -465,11 +465,13 @@ $Form1TextBox5.Location = New-Object System.Drawing.Point(100, 165)
 $Form1TextBox5.Size = New-Object System.Drawing.Size(180, 12)
 
 $Form4TextBox1 = New-Object System.Windows.Forms.TextBox
+$Form4TextBox1.Text = "$Hostname"
 $Form4TextBox1.BorderStyle = 2
 $Form4TextBox1.Location = New-Object System.Drawing.Point(50, 60)
 $Form4TextBox1.Size = New-Object System.Drawing.Size(200, 12)
 
 $Form4TextBox2 = New-Object System.Windows.Forms.TextBox
+$Form4TextBox2.Text = "$ServiceNetTcpPort"
 $Form4TextBox2.BorderStyle = 2
 $Form4TextBox2.Location = New-Object System.Drawing.Point(270, 60)
 $Form4TextBox2.Size = New-Object System.Drawing.Size(60, 12)
